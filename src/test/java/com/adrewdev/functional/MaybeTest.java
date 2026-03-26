@@ -9,8 +9,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for the Maybe class.
@@ -485,6 +487,96 @@ class MaybeTest {
             Maybe<String> maybe = Maybe.none();
 
             assertThat(maybe.toString()).isEqualTo("None{}");
+        }
+    }
+
+    @Nested
+    @DisplayName("map()")
+    class MapMethod {
+
+        @Test
+        @DisplayName("with Some applies function")
+        void withSome_appliesFunction() {
+            Maybe<String> maybe = Maybe.from("hello");
+            Maybe<Integer> result = maybe.map(String::length);
+            assertThat(result.isSome()).isTrue();
+            assertThat(result.getValueOrThrow()).isEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("with None returns None")
+        void withNone_returnsNone() {
+            Maybe<String> maybe = Maybe.none();
+            Maybe<Integer> result = maybe.map(String::length);
+            assertThat(result.isNone()).isTrue();
+        }
+
+        @Test
+        @DisplayName("with null mapper throws NPE")
+        void withNullMapper_throwsNPE() {
+            Maybe<String> maybe = Maybe.from("test");
+            assertThrows(NullPointerException.class, () -> maybe.map(null));
+        }
+    }
+
+    @Nested
+    @DisplayName("bind()")
+    class BindMethod {
+
+        @Test
+        @DisplayName("with Some applies function")
+        void withSome_appliesFunction() {
+            Maybe<String> maybe = Maybe.from("hello");
+            Maybe<Integer> result = maybe.bind(s -> Maybe.some(s.length()));
+            assertThat(result.isSome()).isTrue();
+            assertThat(result.getValueOrThrow()).isEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("with None returns None")
+        void withNone_returnsNone() {
+            Maybe<String> maybe = Maybe.none();
+            Maybe<Integer> result = maybe.bind(s -> Maybe.some(s.length()));
+            assertThat(result.isNone()).isTrue();
+        }
+
+        @Test
+        @DisplayName("with null binder throws NPE")
+        void withNullBinder_throwsNPE() {
+            Maybe<String> maybe = Maybe.from("test");
+            assertThrows(NullPointerException.class, () -> maybe.bind(null));
+        }
+    }
+
+    @Nested
+    @DisplayName("tap()")
+    class TapMethod {
+
+        @Test
+        @DisplayName("with Some calls consumer")
+        void withSome_callsConsumer() {
+            Maybe<String> maybe = Maybe.from("test");
+            AtomicBoolean called = new AtomicBoolean(false);
+            Maybe<String> result = maybe.tap(value -> called.set(true));
+            assertThat(called.get()).isTrue();
+            assertThat(result).isSameAs(maybe);
+        }
+
+        @Test
+        @DisplayName("with None does nothing")
+        void withNone_doesNothing() {
+            Maybe<String> maybe = Maybe.none();
+            AtomicBoolean called = new AtomicBoolean(false);
+            Maybe<String> result = maybe.tap(value -> called.set(true));
+            assertThat(called.get()).isFalse();
+            assertThat(result).isSameAs(maybe);
+        }
+
+        @Test
+        @DisplayName("with null consumer throws NPE")
+        void withNullConsumer_throwsNPE() {
+            Maybe<String> maybe = Maybe.from("test");
+            assertThrows(NullPointerException.class, () -> maybe.tap(null));
         }
     }
 }

@@ -4,13 +4,16 @@ com/adrewdev/functional/MaybeTest$EqualsMethod.class
 com/adrewdev/functional/MaybeTest$TryLastMethod.class
 com/adrewdev/functional/MaybeTest$GetValueOrDefaultMethod.class
 com/adrewdev/functional/MaybeTest$ToStringMethod.class
+com/adrewdev/functional/MaybeTest$MapMethod.class
 com/adrewdev/functional/MaybeTest$IsSomeMethod.class
 com/adrewdev/functional/MaybeTest.class
 com/adrewdev/functional/MaybeTest$NoneMethod.class
 com/adrewdev/functional/MaybeTest$ToOptionalMethod.class
+com/adrewdev/functional/MaybeTest$BindMethod.class
 com/adrewdev/functional/MaybeTest$IsNoneMethod.class
 com/adrewdev/functional/MaybeTest$SomeMethod.class
 com/adrewdev/functional/MaybeTest$GetValueOrThrowWithMessageMethod.class
+com/adrewdev/functional/MaybeTest$TapMethod.class
 com/adrewdev/functional/MaybeTest$TryFirstMethod.class
 com/adrewdev/functional/MaybeTest$GetValueOrThrowMethod.class
 com/adrewdev/functional/MaybeTest$GetValueOrDefaultSupplierMethod.class
