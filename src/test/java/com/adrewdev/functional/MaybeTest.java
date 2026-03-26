@@ -579,4 +579,95 @@ class MaybeTest {
             assertThrows(NullPointerException.class, () -> maybe.tap(null));
         }
     }
+
+    @Nested
+    @DisplayName("match(MaybeMatcher)")
+    class MatchWithMatcherMethod {
+
+        @Test
+        @DisplayName("with Some calls onSome")
+        void withSome_callsOnSome() {
+            Maybe<String> maybe = Maybe.from("hello");
+            String result = maybe.match(new MaybeMatcher<String, String>() {
+                @Override
+                public String onSome(String value) {
+                    return "Got: " + value;
+                }
+
+                @Override
+                public String onNone() {
+                    return "No value";
+                }
+            });
+            assertThat(result).isEqualTo("Got: hello");
+        }
+
+        @Test
+        @DisplayName("with None calls onNone")
+        void withNone_callsOnNone() {
+            Maybe<String> maybe = Maybe.none();
+            String result = maybe.match(new MaybeMatcher<String, String>() {
+                @Override
+                public String onSome(String value) {
+                    return "Got: " + value;
+                }
+
+                @Override
+                public String onNone() {
+                    return "No value";
+                }
+            });
+            assertThat(result).isEqualTo("No value");
+        }
+
+        @Test
+        @DisplayName("with null matcher throws NPE")
+        void withNullMatcher_throwsNPE() {
+            Maybe<String> maybe = Maybe.from("test");
+            assertThrows(NullPointerException.class, () -> maybe.match((MaybeMatcher<String, String>) null));
+        }
+    }
+
+    @Nested
+    @DisplayName("match(Consumer, Runnable)")
+    class MatchWithCallbacksMethod {
+
+        @Test
+        @DisplayName("with Some calls some consumer")
+        void withSome_callsSomeConsumer() {
+            Maybe<String> maybe = Maybe.from("hello");
+            java.util.concurrent.atomic.AtomicReference<String> captured = new java.util.concurrent.atomic.AtomicReference<>();
+            maybe.match(
+                value -> captured.set(value),
+                () -> {}
+            );
+            assertThat(captured.get()).isEqualTo("hello");
+        }
+
+        @Test
+        @DisplayName("with None calls none runnable")
+        void withNone_callsNoneRunnable() {
+            Maybe<String> maybe = Maybe.none();
+            AtomicBoolean called = new AtomicBoolean(false);
+            maybe.match(
+                value -> {},
+                () -> called.set(true)
+            );
+            assertThat(called.get()).isTrue();
+        }
+
+        @Test
+        @DisplayName("with null some throws NPE")
+        void withNullSome_throwsNPE() {
+            Maybe<String> maybe = Maybe.from("test");
+            assertThrows(NullPointerException.class, () -> maybe.match(null, () -> {}));
+        }
+
+        @Test
+        @DisplayName("with null none throws NPE")
+        void withNullNone_throwsNPE() {
+            Maybe<String> maybe = Maybe.from("test");
+            assertThrows(NullPointerException.class, () -> maybe.match(v -> {}, null));
+        }
+    }
 }
