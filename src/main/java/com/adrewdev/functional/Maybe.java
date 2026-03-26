@@ -743,4 +743,94 @@ public final class Maybe<T> {
             return "None{}";
         }
     }
+
+    // ========================================================================
+    // CONVERSION METHODS - FASE 6
+    // TODO: These methods require Result.java and MaybeAsync.java implementations
+    // ========================================================================
+
+    /**
+     * Converts this Maybe to a Result.
+     *
+     * <p>Returns Success if this Maybe contains a value, or Failure with the
+     * provided error if it is empty.</p>
+     *
+     * <p>Example:
+     * <pre>{@code
+     * Maybe<String> maybe = Maybe.from("value");
+     * Result<String, String> result = maybe.toResult("No value provided");
+     * result.match(
+     *     value -> System.out.println("Success: " + value),
+     *     error -> System.out.println("Error: " + error)
+     * );
+     * }</pre>
+     *
+     * @param <E> the type of the error
+     * @param error the error to use if this Maybe is empty
+     * @return a Result containing Success with the value, or Failure with the error
+     * 
+     * @implNote Requires Result.java implementation
+     * @TODO Implement when Result.java is available
+     */
+    public <E> Result<T, E> toResult(E error) {
+        // TODO: Implement when Result.java is available
+        // Expected implementation:
+        // return value
+        //     .map(Result::success)
+        //     .orElse(Result.failure(error));
+        throw new UnsupportedOperationException("toResult() requires Result.java - not yet implemented");
+    }
+
+    /**
+     * Converts this Maybe to a Result with lazy error evaluation.
+     *
+     * <p>Returns Success if this Maybe contains a value, or Failure with the
+     * provided error from the supplier if it is empty.</p>
+     *
+     * <p>Example:
+     * <pre>{@code
+     * Maybe<String> maybe = Maybe.from("value");
+     * Result<String, String> result = maybe.toResult(() -> "Error: " + System.currentTimeMillis());
+     * }</pre>
+     *
+     * @param <E> the type of the error
+     * @param errorSupplier the supplier that provides the error if this Maybe is empty
+     * @return a Result containing Success with the value, or Failure with the error
+     * @throws NullPointerException if errorSupplier is null
+     * 
+     * @implNote Requires Result.java implementation
+     * @TODO Implement when Result.java is available
+     */
+    public <E> Result<T, E> toResult(Supplier<E> errorSupplier) {
+        // TODO: Implement when Result.java is available
+        // Expected implementation:
+        // Objects.requireNonNull(errorSupplier, "errorSupplier cannot be null");
+        // return value
+        //     .map(Result::success)
+        //     .orElseGet(() -> Result.failure(errorSupplier.get()));
+        throw new UnsupportedOperationException("toResult(Supplier) requires Result.java - not yet implemented");
+    }
+
+    /**
+     * Converts this Maybe to a MaybeAsync.
+     *
+     * <p>Useful for composing with asynchronous operations.</p>
+     *
+     * <p>Example:
+     * <pre>{@code
+     * Maybe<String> maybe = Maybe.from("value");
+     * MaybeAsync<String> async = maybe.toMaybeAsync();
+     * }</pre>
+     *
+     * @return a MaybeAsync containing the same value as this Maybe
+     * 
+     * @implNote Requires MaybeAsync.java implementation
+     * @TODO Implement when MaybeAsync.java is available
+     */
+    public MaybeAsync<T> toMaybeAsync() {
+        // TODO: Implement when MaybeAsync.java is available
+        // Expected implementation:
+        // return MaybeAsync.from(value.orElse(null));
+        throw new UnsupportedOperationException("toMaybeAsync() requires MaybeAsync.java - not yet implemented");
+    }
 }
