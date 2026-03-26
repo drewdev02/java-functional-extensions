@@ -8,10 +8,14 @@ com/adrewdev/functional/MaybeTest$NoneMethod.class
 com/adrewdev/functional/MaybeTest$BindMethod.class
 com/adrewdev/functional/MaybeTest$TapMethod.class
 com/adrewdev/functional/MaybeTest$TryFirstMethod.class
+com/adrewdev/functional/MaybeTest$OrElseMethod.class
 com/adrewdev/functional/MaybeTest$GetValueOrThrowMethod.class
 com/adrewdev/functional/MaybeTest$GetValueOrDefaultSupplierMethod.class
 com/adrewdev/functional/MaybeTest$HashCodeMethod.class
+com/adrewdev/functional/MaybeTest$OrWithMaybeMethod.class
+com/adrewdev/functional/MaybeTest$OrWithSupplierMethod.class
 com/adrewdev/functional/MaybeTest$EmptyMethod.class
+com/adrewdev/functional/MaybeTest$OrWithValueMethod.class
 com/adrewdev/functional/MaybeTest$EqualsMethod.class
 com/adrewdev/functional/MaybeTest$TryLastMethod.class
 com/adrewdev/functional/MaybeTest$ToStringMethod.class

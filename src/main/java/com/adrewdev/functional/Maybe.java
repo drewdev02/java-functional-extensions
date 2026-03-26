@@ -569,6 +569,7 @@ public final class Maybe<T> {
      *
      * @param other the Maybe to return if this is None
      * @return this Maybe if Some, other if None
+     * @throws NullPointerException if other is null
      *
      * @example
      * <pre>{@code
@@ -580,6 +581,9 @@ public final class Maybe<T> {
      * @see #or(Object)
      */
     public Maybe<T> or(Maybe<T> other) {
+        if (other == null) {
+            throw new NullPointerException("other cannot be null");
+        }
         if (isSome()) {
             return this;
         }

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -668,6 +669,114 @@ class MaybeTest {
         void withNullNone_throwsNPE() {
             Maybe<String> maybe = Maybe.from("test");
             assertThrows(NullPointerException.class, () -> maybe.match(v -> {}, null));
+        }
+    }
+
+    @Nested
+    @DisplayName("or(T)")
+    class OrWithValueMethod {
+
+        @Test
+        @DisplayName("with Some returns original")
+        void withSome_returnsOriginal() {
+            Maybe<String> maybe = Maybe.from("original");
+            Maybe<String> result = maybe.or("fallback");
+            assertThat(result.getValueOrThrow()).isEqualTo("original");
+        }
+
+        @Test
+        @DisplayName("with None returns new value")
+        void withNone_returnsNewValue() {
+            Maybe<String> maybe = Maybe.none();
+            Maybe<String> result = maybe.or("fallback");
+            assertThat(result.getValueOrThrow()).isEqualTo("fallback");
+        }
+    }
+
+    @Nested
+    @DisplayName("or(Supplier)")
+    class OrWithSupplierMethod {
+
+        @Test
+        @DisplayName("with Some does not call supplier")
+        void withSome_doesNotCallSupplier() {
+            Maybe<String> maybe = Maybe.from("original");
+            AtomicBoolean called = new AtomicBoolean(false);
+            maybe.or(() -> {
+                called.set(true);
+                return "fallback";
+            });
+            assertThat(called.get()).isFalse();
+        }
+
+        @Test
+        @DisplayName("with None calls supplier")
+        void withNone_callsSupplier() {
+            Maybe<String> maybe = Maybe.none();
+            AtomicBoolean called = new AtomicBoolean(false);
+            Maybe<String> result = maybe.or(() -> {
+                called.set(true);
+                return "fallback";
+            });
+            assertThat(called.get()).isTrue();
+            assertThat(result.getValueOrThrow()).isEqualTo("fallback");
+        }
+
+        @Test
+        @DisplayName("with null supplier throws NPE")
+        void withNullSupplier_throwsNPE() {
+            Maybe<String> maybe = Maybe.none();
+            assertThrows(NullPointerException.class, () -> maybe.or((Supplier<String>) null));
+        }
+    }
+
+    @Nested
+    @DisplayName("or(Maybe)")
+    class OrWithMaybeMethod {
+
+        @Test
+        @DisplayName("with Some returns original")
+        void withSome_returnsOriginal() {
+            Maybe<String> maybe = Maybe.from("original");
+            Maybe<String> other = Maybe.from("other");
+            Maybe<String> result = maybe.or(other);
+            assertThat(result.getValueOrThrow()).isEqualTo("original");
+        }
+
+        @Test
+        @DisplayName("with None returns other")
+        void withNone_returnsOther() {
+            Maybe<String> maybe = Maybe.none();
+            Maybe<String> other = Maybe.from("other");
+            Maybe<String> result = maybe.or(other);
+            assertThat(result.getValueOrThrow()).isEqualTo("other");
+        }
+
+        @Test
+        @DisplayName("with null other throws NPE")
+        void withNullOther_throwsNPE() {
+            Maybe<String> maybe = Maybe.from("test");
+            assertThrows(NullPointerException.class, () -> maybe.or((Maybe<String>) null));
+        }
+    }
+
+    @Nested
+    @DisplayName("orElse(Maybe)")
+    class OrElseMethod {
+
+        @Test
+        @DisplayName("is alias for or(Maybe)")
+        void isAliasForOr() {
+            Maybe<String> maybe = Maybe.none();
+            Maybe<String> other = Maybe.from("other");
+            assertThat(maybe.orElse(other).getValueOrThrow()).isEqualTo("other");
+        }
+
+        @Test
+        @DisplayName("with null other throws NPE")
+        void withNullOther_throwsNPE() {
+            Maybe<String> maybe = Maybe.from("test");
+            assertThrows(NullPointerException.class, () -> maybe.orElse((Maybe<String>) null));
         }
     }
 }
