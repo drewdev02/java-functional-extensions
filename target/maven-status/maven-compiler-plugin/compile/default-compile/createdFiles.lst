@@ -1,2 +1,4 @@
 com/adrewdev/functional/MaybeMatcher.class
 com/adrewdev/functional/Maybe.class
+com/adrewdev/functional/Result.class
+com/adrewdev/functional/MaybeAsync.class
