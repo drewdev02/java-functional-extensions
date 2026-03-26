@@ -1,5 +1,6 @@
 package com.adrewdev.functional;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -146,6 +147,60 @@ public final class Maybe<T> {
     @SuppressWarnings("unchecked")
     public static <T> Maybe<T> empty() {
         return (Maybe<T>) NONE;
+    }
+
+    /**
+     * Returns a Maybe containing the first element of the list,
+     * or None if the list is null or empty.
+     *
+     * <p>Example:
+     * <pre>{@code
+     * Maybe<String> first = Maybe.tryFirst(Arrays.asList("a", "b", "c"));
+     * first.match(
+     *     value -> System.out.println("First: " + value),
+     *     () -> System.out.println("List is empty")
+     * );
+     * }</pre>
+     *
+     * @param <T> the type of elements in the list
+     * @param list the list to get the first element from, may be null
+     * @return a Maybe containing the first element, or None if the list is null or empty
+     *
+     * @see #tryLast(List)
+     * @see #from(Object)
+     */
+    public static <T> Maybe<T> tryFirst(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            return none();
+        }
+        return from(list.get(0));
+    }
+
+    /**
+     * Returns a Maybe containing the last element of the list,
+     * or None if the list is null or empty.
+     *
+     * <p>Example:
+     * <pre>{@code
+     * Maybe<String> last = Maybe.tryLast(Arrays.asList("a", "b", "c"));
+     * last.match(
+     *     value -> System.out.println("Last: " + value),
+     *     () -> System.out.println("List is empty")
+     * );
+     * }</pre>
+     *
+     * @param <T> the type of elements in the list
+     * @param list the list to get the last element from, may be null
+     * @return a Maybe containing the last element, or None if the list is null or empty
+     *
+     * @see #tryFirst(List)
+     * @see #from(Object)
+     */
+    public static <T> Maybe<T> tryLast(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            return none();
+        }
+        return from(list.get(list.size() - 1));
     }
 
     /**

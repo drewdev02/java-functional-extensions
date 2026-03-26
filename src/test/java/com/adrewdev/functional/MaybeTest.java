@@ -4,6 +4,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -107,6 +110,70 @@ class MaybeTest {
             Maybe<String> empty = Maybe.empty();
 
             assertThat(none).isSameAs(empty);
+        }
+    }
+
+    @Nested
+    @DisplayName("tryFirst()")
+    class TryFirstMethod {
+
+        @Test
+        @DisplayName("with non-empty list returns Some")
+        void withNonEmptyList_returnsSome() {
+            List<String> list = Arrays.asList("a", "b", "c");
+            Maybe<String> maybe = Maybe.tryFirst(list);
+
+            assertThat(maybe.isSome()).isTrue();
+            assertThat(maybe.getValueOrThrow()).isEqualTo("a");
+        }
+
+        @Test
+        @DisplayName("with empty list returns None")
+        void withEmptyList_returnsNone() {
+            List<String> list = new ArrayList<>();
+            Maybe<String> maybe = Maybe.tryFirst(list);
+
+            assertThat(maybe.isNone()).isTrue();
+        }
+
+        @Test
+        @DisplayName("with null list returns None")
+        void withNullList_returnsNone() {
+            Maybe<String> maybe = Maybe.tryFirst(null);
+
+            assertThat(maybe.isNone()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("tryLast()")
+    class TryLastMethod {
+
+        @Test
+        @DisplayName("with non-empty list returns Some")
+        void withNonEmptyList_returnsSome() {
+            List<String> list = Arrays.asList("a", "b", "c");
+            Maybe<String> maybe = Maybe.tryLast(list);
+
+            assertThat(maybe.isSome()).isTrue();
+            assertThat(maybe.getValueOrThrow()).isEqualTo("c");
+        }
+
+        @Test
+        @DisplayName("with empty list returns None")
+        void withEmptyList_returnsNone() {
+            List<String> list = new ArrayList<>();
+            Maybe<String> maybe = Maybe.tryLast(list);
+
+            assertThat(maybe.isNone()).isTrue();
+        }
+
+        @Test
+        @DisplayName("with null list returns None")
+        void withNullList_returnsNone() {
+            Maybe<String> maybe = Maybe.tryLast(null);
+
+            assertThat(maybe.isNone()).isTrue();
         }
     }
 
