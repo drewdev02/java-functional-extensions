@@ -805,14 +805,8 @@ public final class Maybe<T> {
      * }</pre>
      *
      * @return a MaybeAsync containing the same value as this Maybe
-     * 
-     * @implNote Requires MaybeAsync.java implementation
-     * @TODO Implement when MaybeAsync.java is available
      */
     public MaybeAsync<T> toMaybeAsync() {
-        // TODO: Implement when MaybeAsync.java is available
-        // Expected implementation:
-        // return MaybeAsync.from(value.orElse(null));
-        throw new UnsupportedOperationException("toMaybeAsync() requires MaybeAsync.java - not yet implemented");
+        return MaybeAsync.from(value.orElse(null));
     }
 }

@@ -1,6 +1,5 @@
 package com.adrewdev.functional;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -858,30 +857,25 @@ class MaybeTest {
 
         @Test
         @DisplayName("converts Maybe to MaybeAsync")
-        @Disabled("Requires MaybeAsync.java implementation")
-        void convertsMaybeToMaybeAsync() {
-            // TODO: Implement when MaybeAsync.java is available
+        void convertsMaybeToMaybeAsync() throws Exception {
             Maybe<String> maybe = Maybe.from("value");
-            // MaybeAsync<String> async = maybe.toMaybeAsync();
-            // assertThat(async).isNotNull();
-            // async.match(
-            //     value -> assertThat(value).isEqualTo("value"),
-            //     () -> fail("Should have a value")
-            // );
+            MaybeAsync<String> async = maybe.toMaybeAsync();
+            
+            assertThat(async).isNotNull();
+            Maybe<String> result = async.toCompletableFuture().join();
+            assertThat(result.isSome()).isTrue();
+            assertThat(result.getValueOrThrow()).isEqualTo("value");
         }
 
         @Test
         @DisplayName("converts None to MaybeAsync none")
-        @Disabled("Requires MaybeAsync.java implementation")
-        void convertsNoneToMaybeAsync() {
-            // TODO: Implement when MaybeAsync.java is available
+        void convertsNoneToMaybeAsync() throws Exception {
             Maybe<String> maybe = Maybe.none();
-            // MaybeAsync<String> async = maybe.toMaybeAsync();
-            // assertThat(async).isNotNull();
-            // async.match(
-            //     value -> fail("Should not have a value"),
-            //     () -> {} // Expected
-            // );
+            MaybeAsync<String> async = maybe.toMaybeAsync();
+            
+            assertThat(async).isNotNull();
+            Maybe<String> result = async.toCompletableFuture().join();
+            assertThat(result.isNone()).isTrue();
         }
     }
 }
