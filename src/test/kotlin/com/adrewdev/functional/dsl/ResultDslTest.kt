@@ -464,7 +464,7 @@ class ResultDslTest {
         
         @Test
         fun `matches Success with string`() {
-            val result = result { "hello" }.toResultK()
+            val result = result<String>({ "hello" }).toResultK()
             
             val output = when (result) {
                 is ResultK.Success -> "Got: ${result.value}"
@@ -491,7 +491,7 @@ class ResultDslTest {
         
         @Test
         fun `pattern matching in when expression with transformation`() {
-            val result = result { 10 }.toResultK()
+            val result = result<Int>({ 10 }).toResultK()
             
             val transformed = when (result) {
                 is ResultK.Success -> result.value * 2
@@ -633,9 +633,9 @@ class ResultDslTest {
         
         @Test
         fun `complex chain with map flatMap and recover`() {
-            val result = result { "hello" }
+            val result = result<String>({ "hello" })
                 .map { it.uppercase() }
-                .flatMap { result { it.length } }
+                .flatMap { result<Int>({ it.length }) }
                 .recover { 0 }
             
             assertEquals(5, result.getValueOrThrow())
@@ -645,7 +645,7 @@ class ResultDslTest {
         fun `chain with tap for logging`() {
             val log = mutableListOf<String>()
             
-            val result = result { "test" }
+            val result = result<String>({ "test" })
                 .tapSuccess { log.add("Before map: $it") }
                 .map { str: String -> str.uppercase() }
                 .tapSuccess { log.add("After map: $it") }
@@ -685,10 +685,10 @@ class ResultDslTest {
         
         @Test
         fun `ensure with map and flatMap chain`() {
-            val result = result { "hello" }
+            val result = result<String>({ "hello" })
                 .ensure({ it.length > 3 }, { "Too short" })
                 .map { it.uppercase() }
-                .flatMap { result { it.length } }
+                .flatMap { result<Int>({ it.length }) }
             
             assertEquals(5, result.getValueOrThrow())
         }
@@ -700,21 +700,21 @@ class ResultDslTest {
         
         @Test
         fun `empty string is valid Success`() {
-            val result = result { "" }
+            val result = result<String>({ "" })
             assertTrue(result.isSuccessful())
             assertEquals("", result.getValueOrThrow())
         }
         
         @Test
         fun `zero is valid Success`() {
-            val result = result { 0 }
+            val result = result<Int>({ 0 })
             assertTrue(result.isSuccessful())
             assertEquals(0, result.getValueOrThrow())
         }
         
         @Test
         fun `false is valid Success`() {
-            val result = result { false }
+            val result = result<Boolean>({ false })
             assertTrue(result.isSuccessful())
             assertFalse(result.getValueOrThrow())
         }
@@ -741,8 +741,8 @@ class ResultDslTest {
         
         @Test
         fun `nested Result can be flattened with flatMap`() {
-            val nested = result { result { "inner" } }
-            val flattened = nested.flatMap { it }
+            val nested: Result<Result<String, String>, String> = Result.success(Result.success("inner"))
+            val flattened = nested.flatMap { innerResult -> innerResult }
             
             assertEquals("inner", flattened.getValueOrThrow())
         }
@@ -754,7 +754,7 @@ class ResultDslTest {
         
         @Test
         fun `Kotlin DSL works with Java Result methods`() {
-            val kotlinResult = result { "hello" }
+            val kotlinResult = result<String>({ "hello" })
             
             // Use Java map method
             val javaMapped = kotlinResult.map { it.uppercase() }
@@ -778,9 +778,10 @@ class ResultDslTest {
         fun `Kotlin bind works with Java Result`() {
             val javaResult: Result<Int, String> = Result.success(42)
             
-            val kotlinResult = result {
-                javaResult.bind() * 2
-            }
+            val kotlinResult = result<Int, String>(
+                { e: Throwable -> e.message ?: "error" },
+                { javaResult.bind() * 2 }
+            )
             
             assertEquals(84, kotlinResult.getValueOrThrow())
         }

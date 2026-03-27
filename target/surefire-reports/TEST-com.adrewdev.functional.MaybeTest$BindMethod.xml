@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.adrewdev.functional.MaybeTest$BindMethod" time="0.002" tests="3" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.adrewdev.functional.MaybeTest$BindMethod" time="0.008" tests="3" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -12,7 +12,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="/Users/Andrew/.sdkman/candidates/java/17.0.15-amzn/lib"/>
-    <property name="sun.java.command" value="/Users/Andrew/WorkSpace/adrewdev/test/funtional/target/surefire/surefirebooter-20260326224108248_3.jar /Users/Andrew/WorkSpace/adrewdev/test/funtional/target/surefire 2026-03-26T22-41-08_151-jvmRun1 surefire-20260326224108248_1tmp surefire_0-20260326224108248_2tmp"/>
+    <property name="sun.java.command" value="/Users/Andrew/WorkSpace/adrewdev/test/funtional/target/surefire/surefirebooter-20260326231105021_3.jar /Users/Andrew/WorkSpace/adrewdev/test/funtional/target/surefire 2026-03-26T23-11-04_945-jvmRun1 surefire-20260326231105021_1tmp surefire_0-20260326231105021_2tmp"/>
     <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/Users/Andrew/WorkSpace/adrewdev/test/funtional/target/test-classes:/Users/Andrew/WorkSpace/adrewdev/test/funtional/target/classes:/Users/Andrew/.m2/repository/org/junit/jupiter/junit-jupiter/5.9.3/junit-jupiter-5.9.3.jar:/Users/Andrew/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.9.3/junit-jupiter-api-5.9.3.jar:/Users/Andrew/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/Users/Andrew/.m2/repository/org/junit/platform/junit-platform-commons/1.9.3/junit-platform-commons-1.9.3.jar:/Users/Andrew/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/Users/Andrew/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.9.3/junit-jupiter-params-5.9.3.jar:/Users/Andrew/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.9.3/junit-jupiter-engine-5.9.3.jar:/Users/Andrew/.m2/repository/org/junit/platform/junit-platform-engine/1.9.3/junit-platform-engine-1.9.3.jar:/Users/Andrew/.m2/repository/org/assertj/assertj-core/3.24.2/assertj-core-3.24.2.jar:/Users/Andrew/.m2/repository/net/bytebuddy/byte-buddy/1.12.21/byte-buddy-1.12.21.jar:/Users/Andrew/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.9.0/kotlin-stdlib-1.9.0.jar:/Users/Andrew/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.0/kotlin-stdlib-common-1.9.0.jar:/Users/Andrew/.m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar:/Users/Andrew/.m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.7.0/kotlinx-coroutines-core-1.7.0.jar:/Users/Andrew/.m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.7.0/kotlinx-coroutines-core-jvm-1.7.0.jar:/Users/Andrew/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.8.20/kotlin-stdlib-jdk8-1.8.20.jar:/Users/Andrew/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.8.20/kotlin-stdlib-jdk7-1.8.20.jar:/Users/Andrew/.m2/repository/org/jetbrains/kotlin/kotlin-test-junit5/1.9.0/kotlin-test-junit5-1.9.0.jar:/Users/Andrew/.m2/repository/org/jetbrains/kotlin/kotlin-test/1.9.0/kotlin-test-1.9.0.jar:"/>
@@ -28,7 +28,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="surefire.real.class.path" value="/Users/Andrew/WorkSpace/adrewdev/test/funtional/target/surefire/surefirebooter-20260326224108248_3.jar"/>
+    <property name="surefire.real.class.path" value="/Users/Andrew/WorkSpace/adrewdev/test/funtional/target/surefire/surefirebooter-20260326231105021_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.runtime.version" value="17.0.15+6-LTS"/>
@@ -56,7 +56,7 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="withSome_appliesFunction" classname="com.adrewdev.functional.MaybeTest$BindMethod" time="0.0"/>
-  <testcase name="withNullBinder_throwsNPE" classname="com.adrewdev.functional.MaybeTest$BindMethod" time="0.0"/>
-  <testcase name="withNone_returnsNone" classname="com.adrewdev.functional.MaybeTest$BindMethod" time="0.0"/>
+  <testcase name="withSome_appliesFunction" classname="com.adrewdev.functional.MaybeTest$BindMethod" time="0.003"/>
+  <testcase name="withNullBinder_throwsNPE" classname="com.adrewdev.functional.MaybeTest$BindMethod" time="0.002"/>
+  <testcase name="withNone_returnsNone" classname="com.adrewdev.functional.MaybeTest$BindMethod" time="0.001"/>
 </testsuite>
