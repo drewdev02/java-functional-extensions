@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Main class with comprehensive examples demonstrating all monads.
- * 
+ * <p>
  * Run this to verify that java-functional-extensions works correctly.
  */
 public class Main {
@@ -49,13 +49,13 @@ public class Main {
 
         // Pattern matching
         some.match(
-            (String value) -> System.out.println("Some: " + value),
-            () -> System.out.println("None")
+                (String value) -> System.out.println("Some: " + value),
+                () -> System.out.println("None")
         );
 
         none.match(
-            (String value) -> System.out.println("Some: " + value),
-            () -> System.out.println("None: No value")
+                (String value) -> System.out.println("Some: " + value),
+                () -> System.out.println("None: No value")
         );
 
         // from() handles null gracefully
@@ -86,14 +86,14 @@ public class Main {
         Employee employee = new Employee("emp@company.com", "Jane", "Doe", manager);
 
         Maybe.from(employee)
-            .tap(emp -> System.out.println("Found employee: " + emp.firstName))
-            .bind(emp -> Maybe.from(emp.manager))
-            .map(mgr -> mgr.email)
-            .or("default@company.com")
-            .match(
-                (String email) -> System.out.println("Manager email: " + email),
-                () -> System.out.println("No manager found")
-            );
+                .tap(emp -> System.out.println("Found employee: " + emp.firstName))
+                .bind(emp -> Maybe.from(emp.manager))
+                .map(mgr -> mgr.email)
+                .or("default@company.com")
+                .match(
+                        (String email) -> System.out.println("Manager email: " + email),
+                        () -> System.out.println("No manager found")
+                );
 
         System.out.println();
     }
@@ -106,23 +106,23 @@ public class Main {
 
         // tryFirst
         Maybe.tryFirst(names)
-            .match(
-                (String first) -> System.out.println("First: " + first),
-                () -> System.out.println("Empty list")
-            );
+                .match(
+                        (String first) -> System.out.println("First: " + first),
+                        () -> System.out.println("Empty list")
+                );
 
         Maybe.tryFirst(empty)
-            .match(
-                (String first) -> System.out.println("First: " + first),
-                () -> System.out.println("Empty list: No first element")
-            );
+                .match(
+                        (String first) -> System.out.println("First: " + first),
+                        () -> System.out.println("Empty list: No first element")
+                );
 
         // tryLast
         Maybe.tryLast(names)
-            .match(
-                (String last) -> System.out.println("Last: " + last),
-                () -> System.out.println("Empty list")
-            );
+                .match(
+                        (String last) -> System.out.println("Last: " + last),
+                        () -> System.out.println("Empty list")
+                );
 
         System.out.println();
     }
@@ -137,25 +137,25 @@ public class Main {
         // Success
         Result<String, String> success = Result.success("Operation completed");
         success.match(
-            (String value) -> System.out.println("Success: " + value),
-            (String error) -> System.out.println("Error: " + error)
+                (value) -> System.out.println("Success: " + value),
+                (String error) -> System.out.println("Error: " + error)
         );
 
         // Failure
         Result<String, String> failure = Result.failure("Something went wrong");
         failure.match(
-            (String value) -> System.out.println("Success: " + value),
-            (String error) -> System.out.println("Error: " + error)
+                (String value) -> System.out.println("Success: " + value),
+                (String error) -> System.out.println("Error: " + error)
         );
 
         // try_ with exception handling
-        Result<Integer, String> parseResult = Result.try_(
-            () -> Integer.parseInt("42"),
-            error -> "Parse failed: " + error.getMessage()
+        Result<Integer, String> parseResult = Result.of(
+                () -> Integer.parseInt("42"),
+                error -> "Parse failed: " + error.getMessage()
         );
         parseResult.match(
-            (Integer value) -> System.out.println("Parsed value: " + value),
-            (String error) -> System.out.println(error)
+                (Integer value) -> System.out.println("Parsed value: " + value),
+                (String error) -> System.out.println(error)
         );
 
         System.out.println();
@@ -167,6 +167,7 @@ public class Main {
         class User {
             String email;
             boolean active;
+
             User(String email, boolean active) {
                 this.email = email;
                 this.active = active;
@@ -177,14 +178,14 @@ public class Main {
 
         // Railway pattern with bind
         Result<User, String> result = Result.<User, String>success(user)
-            .ensure((User u) -> u.active, "User is not active")
-            .ensure((User u) -> u.email.endsWith("@business.com"), "Email must be @business.com");
+                .ensure((User u) -> u.active, "User is not active")
+                .ensure((User u) -> u.email.endsWith("@business.com"), "Email must be @business.com");
 
         Result<String, String> emailResult = result.map((User u) -> u.email);
 
         emailResult.match(
-            (String email) -> System.out.println("Success: " + email),
-            (String error) -> System.out.println("Error: " + error)
+                (String email) -> System.out.println("Success: " + email),
+                (String error) -> System.out.println("Error: " + error)
         );
 
         System.out.println();
@@ -195,33 +196,33 @@ public class Main {
 
         // successIf / failureIf
         Result<String, String> result1 = Result.successIf(
-            true, 
-            "Valid", 
-            "Invalid"
+                true,
+                "Valid",
+                "Invalid"
         );
         result1.match(
-            (String value) -> System.out.println("successIf (true): " + value),
-            (String error) -> System.out.println(error)
+                (String value) -> System.out.println("successIf (true): " + value),
+                (String error) -> System.out.println(error)
         );
 
         Result<String, String> result2 = Result.failureIf(
-            false,
-            "Error occurred",
-            "Success"
+                false,
+                "Error occurred",
+                "Success"
         );
         result2.match(
-            (String value) -> System.out.println("failureIf (false): " + value),
-            (String error) -> System.out.println(error)
+                (String value) -> System.out.println("failureIf (false): " + value),
+                (String error) -> System.out.println(error)
         );
 
         // zip - combine two results
         Result<String, String> r1 = Result.success("Hello");
         Result<Integer, String> r2 = Result.success(42);
-        
+
         Result<String, String> zipped = r1.zip(r2, (s, i) -> s + " " + i);
         zipped.match(
-            (String value) -> System.out.println("Zipped: " + value),
-            (String error) -> System.out.println(error)
+                (String value) -> System.out.println("Zipped: " + value),
+                (String error) -> System.out.println(error)
         );
 
         System.out.println();
@@ -245,16 +246,16 @@ public class Main {
         });
 
         MaybeAsync<String> maybeAsync = MaybeAsync.from(future);
-        
+
         maybeAsync
-            .map(value -> value.toUpperCase())
-            .tap(value -> System.out.println("Processing: " + value))
-            .toCompletableFuture()
-            .join()
-            .match(
-                (String value) -> System.out.println("Async result: " + value),
-                () -> System.out.println("Async: No value")
-            );
+                .map(value -> value.toUpperCase())
+                .tap(value -> System.out.println("Processing: " + value))
+                .toCompletableFuture()
+                .join()
+                .match(
+                        (String value) -> System.out.println("Async result: " + value),
+                        () -> System.out.println("Async: No value")
+                );
 
         System.out.println();
     }
@@ -273,19 +274,19 @@ public class Main {
         });
 
         ResultAsync<Integer, String> resultAsync = ResultAsync.from(
-            future,
-            error -> "Error: " + error.getMessage()
+                future,
+                error -> "Error: " + error.getMessage()
         );
 
         resultAsync
-            .map(value -> value * 2)
-            .tap(value -> System.out.println("Processed: " + value))
-            .toCompletableFuture()
-            .join()
-            .match(
-                (Integer value) -> System.out.println("Async success: " + value),
-                (String error) -> System.out.println("Async error: " + error)
-            );
+                .map(value -> value * 2)
+                .tap(value -> System.out.println("Processed: " + value))
+                .toCompletableFuture()
+                .join()
+                .match(
+                        (Integer value) -> System.out.println("Async success: " + value),
+                        (String error) -> System.out.println("Async error: " + error)
+                );
 
         System.out.println();
     }
@@ -314,12 +315,12 @@ public class Main {
         System.out.println("emptyStringAsNone(''): " + Utilities.emptyStringAsNone("").isNone());
         System.out.println("emptyStringAsNone('test'): " + Utilities.emptyStringAsNone("test").isSome());
 
-        System.out.println("emptyOrWhiteSpaceStringAsNone('   '): " + 
-            Utilities.emptyOrWhiteSpaceStringAsNone("   ").isNone());
+        System.out.println("emptyOrWhiteSpaceStringAsNone('   '): " +
+                Utilities.emptyOrWhiteSpaceStringAsNone("   ").isNone());
 
         // Utility functions
         System.out.println("identity().apply('test'): " + Utilities.identity().apply("test"));
-        
+
         Utilities.noop();
         System.out.println("noop(): executed without error");
 

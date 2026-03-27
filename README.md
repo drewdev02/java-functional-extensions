@@ -44,7 +44,7 @@ maybe.match(
 ```java
 import com.adrewdev.functional.Result;
 
-Result<User, String> result = Result.try_(
+Result<User, String> result = Result.of(
     () -> getUserById(id),
     error -> "Failed to get user: " + error.getMessage()
 )
@@ -83,7 +83,7 @@ Represents a successful or failed operation.
 |--------|-------------|
 | `success(T)` | Create successful Result |
 | `failure(E)` | Create failed Result |
-| `try_()` | Execute supplier with error handling |
+| `of()` | Execute supplier with error handling |
 | `of()` | Wrap Result supplier |
 | `map(Function)` | Transform success value |
 | `mapError(Function)` | Transform error value |
@@ -150,7 +150,7 @@ Result.try(
 
 ```java
 // Java
-Result.try_(
+Result.of(
   () -> getEmployee(42),
   (error) -> "Retrieving failed: " + error
 )

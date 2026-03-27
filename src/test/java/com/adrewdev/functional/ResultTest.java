@@ -90,7 +90,7 @@ class ResultTest {
         @Test
         @DisplayName("with successful supplier returns Success")
         void withSuccessfulSupplier_returnsSuccess() {
-            Result<Integer, String> result = Result.try_(
+            Result<Integer, String> result = Result.of(
                 () -> 42,
                 error -> "Error: " + error
             );
@@ -102,7 +102,7 @@ class ResultTest {
         @Test
         @DisplayName("with throwing supplier returns Failure")
         void withThrowingSupplier_returnsFailure() {
-            Result<Integer, String> result = Result.try_(
+            Result<Integer, String> result = Result.of(
                 () -> {
                     throw new RuntimeException("test error");
                 },
@@ -116,7 +116,7 @@ class ResultTest {
         @Test
         @DisplayName("with null supplier throws NullPointerException")
         void withNullSupplier_throwsNPE() {
-            assertThatThrownBy(() -> Result.try_(null, error -> "error"))
+            assertThatThrownBy(() -> Result.of(null, error -> "error"))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("supplier cannot be null");
         }
@@ -124,7 +124,7 @@ class ResultTest {
         @Test
         @DisplayName("with null error handler throws NullPointerException")
         void withNullErrorHandler_throwsNPE() {
-            assertThatThrownBy(() -> Result.try_(() -> 42, null))
+            assertThatThrownBy(() -> Result.of(() -> 42, null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("errorHandler cannot be null");
         }
@@ -132,7 +132,7 @@ class ResultTest {
         @Test
         @DisplayName("catches checked exceptions")
         void catchesCheckedExceptions() {
-            Result<Integer, String> result = Result.try_(
+            Result<Integer, String> result = Result.of(
                 () -> {
                     throw new RuntimeException("checked exception");
                 },

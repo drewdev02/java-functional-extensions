@@ -27,7 +27,7 @@ import java.util.function.Supplier;
  *
  * <p>Example:
  * <pre>{@code
- * Result<User, String> result = Result.try_(
+ * Result<User, String> result = Result.of(
  *     () -> getUser(id),
  *     error -> "Failed to get user: " + error
  * )
@@ -97,7 +97,8 @@ public final class Result<T, E> {
      * }</pre>
      *
      * @see #failure(Object)
-     * @see #try_(Supplier, Function)
+     * @see #failure(Object)
+     * @see #of(Supplier, Function)
      */
     public static <T, E> Result<T, E> success(T value) {
         if (value == null) {
@@ -124,13 +125,69 @@ public final class Result<T, E> {
      * }</pre>
      *
      * @see #success(Object)
-     * @see #try_(Supplier, Function)
+     * @see #of(Supplier, Function)
      */
     public static <T, E> Result<T, E> failure(E error) {
         if (error == null) {
             throw new NullPointerException("error cannot be null");
         }
         return new Result<>(Optional.empty(), Optional.of(error), false);
+    }
+
+    /**
+     * Executes a supplier that may throw an exception, converting it to a Result.
+     *
+     * <p>This method is deprecated in favor of {@link #of(Supplier, Function)}.</p>
+     *
+     * @param <T> the type of the success value
+     * @param <E> the type of the error
+     * @param supplier the supplier to execute
+     * @param errorHandler the function to convert exceptions to errors
+     * @return a Result containing the success value or error
+     * @deprecated Use {@link #of(Supplier, Function)} instead
+     */
+    @Deprecated
+    public static <T, E> Result<T, E> try_(Supplier<T> supplier, Function<Throwable, E> errorHandler) {
+        return of(supplier, errorHandler);
+    }
+    
+    /**
+     * Executes a supplier that may throw an exception, converting it to a Result.
+     *
+     * <p>If the supplier succeeds, returns a successful Result.
+     * If it throws, returns a failed Result with the error from the handler.</p>
+     *
+     * <p>Example:
+     * <pre>{@code
+     * Result<Integer, String> result = Result.of(
+     *     () -> Integer.parseInt("42"),
+     *     error -> "Parse failed: " + error.getMessage()
+     * );
+     * result.match(
+     *     value -> System.out.println("Parsed: " + value),
+     *     error -> System.out.println("Error: " + error)
+     * );
+     * }</pre>
+     *
+     * @param <T> the type of the success value
+     * @param <E> the type of the error
+     * @param supplier the supplier to execute (must not be null)
+     * @param errorHandler the function to convert exceptions to errors (must not be null)
+     * @return a Result containing the success value or error
+     * @throws NullPointerException if supplier or errorHandler is null
+     *
+     * @see #success(Object)
+     * @see #failure(Object)
+     * @see #of(Supplier)
+     */
+    public static <T, E> Result<T, E> of(Supplier<T> supplier, Function<Throwable, E> errorHandler) {
+        Objects.requireNonNull(supplier, "supplier cannot be null");
+        Objects.requireNonNull(errorHandler, "errorHandler cannot be null");
+        try {
+            return success(supplier.get());
+        } catch (Throwable e) {
+            return failure(errorHandler.apply(e));
+        }
     }
 
     /**
@@ -158,20 +215,6 @@ public final class Result<T, E> {
      * @return a Result containing the success value or error
      * @throws NullPointerException if supplier or errorHandler is null
      *
-     * @see #success(Object)
-     * @see #failure(Object)
-     * @see #of(Supplier)
-     */
-    public static <T, E> Result<T, E> try_(Supplier<T> supplier, Function<Throwable, E> errorHandler) {
-        Objects.requireNonNull(supplier, "supplier cannot be null");
-        Objects.requireNonNull(errorHandler, "errorHandler cannot be null");
-        try {
-            return success(supplier.get());
-        } catch (Throwable e) {
-            return failure(errorHandler.apply(e));
-        }
-    }
-
     /**
      * Wraps a Result-returning supplier, catching any exceptions.
      *
