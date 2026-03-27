@@ -771,7 +771,7 @@ public final class Maybe<T> {
      */
     public <E> Result<T, E> toResult(E error) {
         return value
-            .<Result<T, E>>map(v -> Result.success(v))
+            .<Result<T, E>>map(Result::success)
             .orElse(Result.failure(error));
     }
 
@@ -789,7 +789,7 @@ public final class Maybe<T> {
     public <E> Result<T, E> toResult(Supplier<E> errorSupplier) {
         Objects.requireNonNull(errorSupplier, "errorSupplier cannot be null");
         return value
-            .<Result<T, E>>map(v -> Result.success(v))
+            .<Result<T, E>>map(Result::success)
             .orElseGet(() -> Result.failure(errorSupplier.get()));
     }
 
