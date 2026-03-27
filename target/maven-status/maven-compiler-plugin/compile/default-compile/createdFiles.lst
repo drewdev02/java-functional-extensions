@@ -1,6 +1,7 @@
 com/adrewdev/functional/MaybeAsync$1.class
-com/adrewdev/functional/MaybeMatcher.class
 com/adrewdev/functional/Maybe.class
-com/adrewdev/functional/Result.class
+com/adrewdev/functional/Result$Pair.class
 com/adrewdev/functional/MaybeAsync.class
+com/adrewdev/functional/MaybeMatcher.class
+com/adrewdev/functional/Result.class
 com/adrewdev/functional/MaybeAsyncMatcher.class

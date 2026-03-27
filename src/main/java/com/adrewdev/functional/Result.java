@@ -1,8 +1,11 @@
 package com.adrewdev.functional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -907,6 +910,479 @@ public final class Result<T, E> {
             return "Success{" + successValue.get() + "}";
         } else {
             return "Failure{" + errorValue.get() + "}";
+        }
+    }
+
+    // ========================================================================
+    // STATIC CONDITIONAL FACTORY METHODS
+    // ========================================================================
+
+    /**
+     * Creates a successful Result if the condition is true, otherwise creates a failure.
+     *
+     * @param <T> the type of the success value
+     * @param <E> the type of the error
+     * @param condition the condition to check
+     * @param value the value to wrap if condition is true
+     * @param error the error to use if condition is false
+     * @return a Result that is successful if condition is true
+     *
+     * @example
+     * <pre>{@code
+     * Result.successIf(true, "value", "error");  // Success{value}
+     * Result.successIf(false, "value", "error"); // Failure{error}
+     * }</pre>
+     *
+     * @see #failureIf(boolean, Object, Object)
+     */
+    public static <T, E> Result<T, E> successIf(boolean condition, T value, E error) {
+        return condition ? success(value) : failure(error);
+    }
+
+    /**
+     * Creates a successful Result if the condition is true, with lazy value evaluation.
+     *
+     * @param <T> the type of the success value
+     * @param <E> the type of the error
+     * @param condition the condition to check
+     * @param valueSupplier the supplier of the value to wrap if condition is true (must not be null)
+     * @param error the error to use if condition is false
+     * @return a Result that is successful if condition is true
+     * @throws NullPointerException if valueSupplier is null
+     *
+     * @example
+     * <pre>{@code
+     * Result.successIf(true, () -> expensiveOperation(), "error");  // calls operation
+     * Result.successIf(false, () -> expensiveOperation(), "error"); // skips operation
+     * }</pre>
+     *
+     * @see #successIf(boolean, Object, Object)
+     */
+    public static <T, E> Result<T, E> successIf(boolean condition, Supplier<T> valueSupplier, E error) {
+        if (condition) {
+            Objects.requireNonNull(valueSupplier, "valueSupplier cannot be null");
+            return success(valueSupplier.get());
+        }
+        return failure(error);
+    }
+
+    /**
+     * Creates a failed Result if the condition is true.
+     *
+     * @param <T> the type of the success value
+     * @param <E> the type of the error
+     * @param condition the condition to check
+     * @param error the error to use if condition is true
+     * @param value the value to use if condition is false
+     * @return a Result that is failed if condition is true
+     *
+     * @example
+     * <pre>{@code
+     * Result.failureIf(true, "error", "value");  // Failure{error}
+     * Result.failureIf(false, "error", "value"); // Success{value}
+     * }</pre>
+     *
+     * @see #successIf(boolean, Object, Object)
+     */
+    public static <T, E> Result<T, E> failureIf(boolean condition, E error, T value) {
+        return condition ? failure(error) : success(value);
+    }
+
+    /**
+     * Creates a failed Result if the condition is true, with lazy error evaluation.
+     *
+     * @param <T> the type of the success value
+     * @param <E> the type of the error
+     * @param condition the condition to check
+     * @param errorSupplier the supplier of the error to use if condition is true (must not be null)
+     * @param value the value to use if condition is false
+     * @return a Result that is failed if condition is true
+     * @throws NullPointerException if errorSupplier is null
+     *
+     * @example
+     * <pre>{@code
+     * Result.failureIf(true, () -> computeError(), "value");  // calls computeError
+     * Result.failureIf(false, () -> computeError(), "value"); // skips computeError
+     * }</pre>
+     *
+     * @see #failureIf(boolean, Object, Object)
+     */
+    public static <T, E> Result<T, E> failureIf(boolean condition, Supplier<E> errorSupplier, T value) {
+        if (condition) {
+            Objects.requireNonNull(errorSupplier, "errorSupplier cannot be null");
+            return failure(errorSupplier.get());
+        }
+        return success(value);
+    }
+
+    // ========================================================================
+    // COMBINATION METHODS
+    // ========================================================================
+
+    /**
+     * Combines this Result with another Result using the given combiner function.
+     *
+     * <p>If both Results are successful, applies the combiner and returns success.
+     * If either is failed, returns the first failure.</p>
+     *
+     * @param <T2> the type of the other success value
+     * @param <R> the type of the combined result
+     * @param other the other Result to combine with (must not be null)
+     * @param combiner the function to combine the values (must not be null)
+     * @return a Result with the combined value, or the first failure
+     * @throws NullPointerException if other or combiner is null
+     *
+     * @example
+     * <pre>{@code
+     * Result.success("hello").zip(Result.success(5), (s, i) -> s + ":" + i);
+     * // Success{hello:5}
+     * Result.failure("error1").zip(Result.success(5), (s, i) -> s + ":" + i);
+     * // Failure{error1}
+     * }</pre>
+     *
+     * @see #merge(Result)
+     */
+    public <T2, R> Result<R, E> zip(Result<T2, E> other, BiFunction<T, T2, R> combiner) {
+        Objects.requireNonNull(other, "other cannot be null");
+        Objects.requireNonNull(combiner, "combiner cannot be null");
+
+        if (isFailure()) {
+            return (Result<R, E>) this;
+        }
+        if (other.isFailure()) {
+            return (Result<R, E>) other;
+        }
+
+        return success(combiner.apply(successValue.get(), other.successValue.get()));
+    }
+
+    /**
+     * Merges two successful Results into a Pair, or returns the first failure.
+     *
+     * @param <U> the type of the other success value
+     * @param other the other Result to merge with (must not be null)
+     * @return a Result with a Pair of values, or the first failure
+     * @throws NullPointerException if other is null
+     *
+     * @example
+     * <pre>{@code
+     * Result.success("hello").merge(Result.success(5));
+     * // Success{Pair{hello, 5}}
+     * Result.failure("error").merge(Result.success(5));
+     * // Failure{error}
+     * }</pre>
+     *
+     * @see #zip(Result, BiFunction)
+     */
+    public <U> Result<Pair<T, U>, E> merge(Result<U, E> other) {
+        return zip(other, Pair::new);
+    }
+
+    /**
+     * Combines a list of Results, returning all success values or the first failure.
+     *
+     * @param <T> the type of the success values
+     * @param <E> the type of the error
+     * @param results the list of Results to combine (must not be null)
+     * @return a Result with a list of all success values, or the first failure
+     * @throws NullPointerException if results is null
+     *
+     * @example
+     * <pre>{@code
+     * List<Result<Integer, String>> results = List.of(
+     *     Result.success(1),
+     *     Result.success(2),
+     *     Result.success(3)
+     * );
+     * Result.all(results); // Success{[1, 2, 3]}
+     *
+     * List<Result<Integer, String>> withFailure = List.of(
+     *     Result.success(1),
+     *     Result.failure("error"),
+     *     Result.success(3)
+     * );
+     * Result.all(withFailure); // Failure{error}
+     * }</pre>
+     *
+     * @see #any(List)
+     * @see #first(Result...)
+     */
+    public static <T, E> Result<List<T>, E> all(List<Result<T, E>> results) {
+        Objects.requireNonNull(results, "results cannot be null");
+
+        List<T> values = new ArrayList<>();
+        for (Result<T, E> result : results) {
+            if (result.isFailure()) {
+                return (Result<List<T>, E>) result;
+            }
+            values.add(result.successValue.get());
+        }
+
+        return success(values);
+    }
+
+    /**
+     * Returns the first successful Result from a list, or the last failure if all fail.
+     *
+     * @param <T> the type of the success value
+     * @param <E> the type of the error
+     * @param results the list of Results to check (must not be null)
+     * @return the first successful Result, or the last failure if all fail
+     * @throws NullPointerException if results is null
+     *
+     * @example
+     * <pre>{@code
+     * List<Result<String, String>> results = List.of(
+     *     Result.failure("error1"),
+     *     Result.success("found it!"),
+     *     Result.failure("error2")
+     * );
+     * Result.any(results); // Success{found it!}
+     *
+     * List<Result<String, String>> allFail = List.of(
+     *     Result.failure("error1"),
+     *     Result.failure("error2")
+     * );
+     * Result.any(allFail); // Failure{error2}
+     * }</pre>
+     *
+     * @see #all(List)
+     * @see #first(Result...)
+     */
+    public static <T, E> Result<T, E> any(List<Result<T, E>> results) {
+        Objects.requireNonNull(results, "results cannot be null");
+
+        Result<T, E> lastFailure = null;
+        for (Result<T, E> result : results) {
+            if (result.isSuccessful()) {
+                return result;
+            }
+            lastFailure = result;
+        }
+
+        return lastFailure != null ? lastFailure : failure((E) new NoSuchElementException("Empty list"));
+    }
+
+    /**
+     * Returns the first successful Result from varargs, or the first failure if all fail.
+     *
+     * @param <T> the type of the success value
+     * @param <E> the type of the error
+     * @param results the varargs Results to check
+     * @return the first successful Result, or the first failure if all fail
+     * @throws NullPointerException if results is null
+     *
+     * @example
+     * <pre>{@code
+     * Result.first(
+     *     Result.failure("error1"),
+     *     Result.success("found it!"),
+     *     Result.failure("error2")
+     * ); // Success{found it!}
+     *
+     * Result.first(
+     *     Result.failure("error1"),
+     *     Result.failure("error2")
+     * ); // Failure{error1}
+     * }</pre>
+     *
+     * @see #all(List)
+     * @see #any(List)
+     */
+    @SafeVarargs
+    public static <T, E> Result<T, E> first(Result<T, E>... results) {
+        Objects.requireNonNull(results, "results cannot be null");
+
+        for (Result<T, E> result : results) {
+            if (result.isSuccessful()) {
+                return result;
+            }
+        }
+
+        return results.length > 0 ? results[0] : failure((E) new NoSuchElementException("No results provided"));
+    }
+
+    // ========================================================================
+    // ADVANCED RECOVERY METHODS
+    // ========================================================================
+
+    /**
+     * Attempts to recover from a failure by applying a recovery function.
+     *
+     * <p>If this Result is successful, returns it unchanged.
+     * If it is failed, applies the recovery function to the error and returns success.</p>
+     *
+     * @param recoverFn the function to recover from error (must not be null)
+     * @return a successful Result with either the original value or recovered value
+     * @throws NullPointerException if recoverFn is null
+     *
+     * @example
+     * <pre>{@code
+     * Result.failure("error").recover(err -> "recovered from: " + err);
+     * // Success{recovered from: error}
+     * Result.success("value").recover(err -> "recovered from: " + err);
+     * // Success{value}
+     * }</pre>
+     *
+     * @see #bindError(Function)
+     */
+    public Result<T, E> recover(Function<E, T> recoverFn) {
+        Objects.requireNonNull(recoverFn, "recoverFn cannot be null");
+
+        if (isSuccessful()) {
+            return this;
+        }
+
+        return success(recoverFn.apply(errorValue.get()));
+    }
+
+    /**
+     * Transforms the error using a function that returns a Result.
+     * Similar to bind but for errors.
+     *
+     * @param <E2> the type of the new error
+     * @param binder the function to transform the error (must not be null)
+     * @return a Result with the transformed error, or the same success
+     * @throws NullPointerException if binder is null
+     *
+     * @example
+     * <pre>{@code
+     * Result.failure("error").bindError(err -> Result.failure("transformed: " + err));
+     * // Failure{transformed: error}
+     * Result.success("value").bindError(err -> Result.failure("transformed: " + err));
+     * // Success{value}
+     * }</pre>
+     *
+     * @see #recover(Function)
+     */
+    public <E2> Result<T, E2> bindError(Function<E, Result<T, E2>> binder) {
+        Objects.requireNonNull(binder, "binder cannot be null");
+
+        if (isSuccessful()) {
+            return (Result<T, E2>) this;
+        }
+
+        return binder.apply(errorValue.get());
+    }
+
+    /**
+     * Performs a side effect on the success value.
+     * Alias for tap().
+     *
+     * @param consumer the consumer to apply to the success value (must not be null)
+     * @return this Result (unchanged)
+     * @throws NullPointerException if consumer is null
+     *
+     * @example
+     * <pre>{@code
+     * Result.success("hello").tapSuccess(System.out::println);
+     * // prints "hello", returns Success{hello}
+     * Result.failure("error").tapSuccess(System.out::println);
+     * // does nothing, returns Failure{error}
+     * }</pre>
+     *
+     * @see #tap(Consumer)
+     * @see #tapFailure(Consumer)
+     */
+    public Result<T, E> tapSuccess(Consumer<T> consumer) {
+        return tap(consumer);
+    }
+
+    /**
+     * Performs a side effect on the error value.
+     *
+     * @param consumer the consumer to apply to the error (must not be null)
+     * @return this Result (unchanged)
+     * @throws NullPointerException if consumer is null
+     *
+     * @example
+     * <pre>{@code
+     * Result.failure("error").tapFailure(System.err::println);
+     * // prints "error" to stderr, returns Failure{error}
+     * Result.success("ok").tapFailure(System.err::println);
+     * // does nothing, returns Success{ok}
+     * }</pre>
+     *
+     * @see #tap(Consumer)
+     * @see #tapSuccess(Consumer)
+     */
+    public Result<T, E> tapFailure(Consumer<E> consumer) {
+        Objects.requireNonNull(consumer, "consumer cannot be null");
+
+        if (isFailure()) {
+            consumer.accept(errorValue.get());
+        }
+
+        return this;
+    }
+
+    /**
+     * Converts a Result<Unit, E> to a Maybe<E> for error handling.
+     * Useful for integrating with Maybe-based error handling.
+     *
+     * @return a Maybe containing the error if this is a failure, or none if successful
+     *
+     * @example
+     * <pre>{@code
+     * Result.success(Unit.INSTANCE).compact(); // Maybe.none()
+     * Result.failure("error").compact();       // Maybe.some("error")
+     * }</pre>
+     *
+     * @see Maybe#some(Object)
+     * @see Maybe#none()
+     */
+    public Maybe<E> compact() {
+        return isFailure() ? Maybe.some(errorValue.get()) : Maybe.none();
+    }
+
+    // ========================================================================
+    // HELPER CLASSES
+    // ========================================================================
+
+    /**
+     * A simple immutable pair for holding two values.
+     *
+     * @param <T> the type of the first value
+     * @param <U> the type of the second value
+     */
+    public static final class Pair<T, U> {
+        /**
+         * The first value in the pair.
+         */
+        public final T first;
+
+        /**
+         * The second value in the pair.
+         */
+        public final U second;
+
+        /**
+         * Creates a new Pair with the given values.
+         *
+         * @param first the first value
+         * @param second the second value
+         */
+        public Pair(T first, U second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Pair<?, ?> pair = (Pair<?, ?>) o;
+            return Objects.equals(first, pair.first) && Objects.equals(second, pair.second);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(first, second);
+        }
+
+        @Override
+        public String toString() {
+            return "Pair{" + first + ", " + second + "}";
         }
     }
 }
