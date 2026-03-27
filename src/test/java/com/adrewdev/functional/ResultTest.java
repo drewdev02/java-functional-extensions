@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -1289,7 +1290,7 @@ class ResultTest {
         @Test
         @DisplayName("with all successes returns list of values")
         void withAllSuccesses_returnsListOfValues() {
-            List<Result<Integer, String>> results = List.of(
+            List<Result<Integer, String>> results = Arrays.asList(
                 Result.success(1),
                 Result.success(2),
                 Result.success(3)
@@ -1304,7 +1305,7 @@ class ResultTest {
         @Test
         @DisplayName("with one failure returns first failure")
         void withOneFailure_returnsFirstFailure() {
-            List<Result<Integer, String>> results = List.of(
+            List<Result<Integer, String>> results = Arrays.asList(
                 Result.success(1),
                 Result.failure("error at 2"),
                 Result.success(3)
@@ -1319,7 +1320,7 @@ class ResultTest {
         @Test
         @DisplayName("with empty list returns empty list")
         void withEmptyList_returnsEmptyList() {
-            List<Result<Integer, String>> results = List.of();
+            List<Result<Integer, String>> results = Arrays.asList();
 
             Result<List<Integer>, String> result = Result.all(results);
 
@@ -1343,7 +1344,7 @@ class ResultTest {
         @Test
         @DisplayName("with one success returns first success")
         void withOneSuccess_returnsFirstSuccess() {
-            List<Result<String, String>> results = List.of(
+            List<Result<String, String>> results = Arrays.asList(
                 Result.failure("error1"),
                 Result.success("found it!"),
                 Result.failure("error2")
@@ -1358,7 +1359,7 @@ class ResultTest {
         @Test
         @DisplayName("with all failures returns last failure")
         void withAllFailures_returnsLastFailure() {
-            List<Result<String, String>> results = List.of(
+            List<Result<String, String>> results = Arrays.asList(
                 Result.failure("error1"),
                 Result.failure("error2"),
                 Result.failure("error3")
@@ -1373,7 +1374,7 @@ class ResultTest {
         @Test
         @DisplayName("with empty list returns failure")
         void withEmptyList_returnsFailure() {
-            List<Result<String, String>> results = List.of();
+            List<Result<String, String>> results = Arrays.asList();
 
             Result<String, String> result = Result.any(results);
 
