@@ -406,6 +406,106 @@ java-functional-extensions/
 └── pom.xml
 ```
 
+## Transaction Scope
+
+Inspired by CSharpFunctionalExtensions.WithTransactionScope(), java-functional-extensions now includes comprehensive transaction management support.
+
+### Basic Usage
+
+```java
+import com.adrewdev.functional.Result;
+import com.adrewdev.functional.transaction.TransactionManager;
+import com.adrewdev.functional.transaction.jdbc.JdbcTransactionManager;
+
+// Create a transaction manager
+TransactionManager txManager = new JdbcTransactionManager(dataSource);
+
+// Execute operations within a transaction
+Result<Customer, String> result = Result.from(() -> getCustomer(id))
+    .toResult("Customer not found")
+    .withTransaction(txManager, customer -> 
+        Result.<Customer, String>success(customer)
+            .tap(Customer::promote)
+            .tap(Customer::clearAppointments)
+    )
+    .tap(customer -> emailGateway.sendNotification(customer.getEmail()));
+
+// The transaction will:
+// - Commit if all operations succeed
+// - Rollback automatically if any operation fails
+// - Rollback automatically if an exception is thrown
+```
+
+### Kotlin DSL
+
+```kotlin
+import com.adrewdev.functional.dsl.withTransaction
+import com.adrewdev.functional.dsl.resultWithTransaction
+
+// Extension function syntax
+val result = getCustomer(id)
+    .toResult("Customer not found")
+    .withTransaction(txManager) { customer ->
+        Result.success(customer)
+            .tap { it.promote() }
+            .tap { it.clearAppointments() }
+    }
+
+// Standalone transaction
+val unitResult = resultWithTransaction(txManager) {
+    Result.success<Unit, String>(Unit.VALUE)
+        .tap { repository.save(entity1) }
+        .tap { repository.save(entity2) }
+}
+```
+
+### Transaction Managers
+
+The library provides interfaces that you can implement for your specific transaction manager:
+
+- **TransactionManager** - Interface for creating transactions
+- **Transaction** - Represents an active transaction with commit/rollback
+
+Example implementations are provided:
+- **JdbcTransactionManager** - For plain JDBC connections
+- **SpringTransactionManager** - For Spring Framework (in examples/)
+
+### Features
+
+- ✅ **Automatic rollback** on failure or exception
+- ✅ **Try-with-resources** support for safe transaction handling
+- ✅ **Type-safe** with full generic support
+- ✅ **Composable** with other Result operations
+- ✅ **Zero dependencies** (core interfaces only)
+- ✅ **Framework-agnostic** (works with JDBC, Spring, JTA, etc.)
+
+### Complete Example
+
+```java
+public Result<Unit, String> transferFunds(
+    Long fromAccountId,
+    Long toAccountId,
+    BigDecimal amount,
+    TransactionManager txManager
+) {
+    return Result.<Unit, String>success(Unit.VALUE)
+        .withTransaction(txManager, unused ->
+            Result.from(() -> getAccount(fromAccountId))
+                .toResult("Source account not found")
+                .bind(fromAccount -> 
+                    Result.from(() -> getAccount(toAccountId))
+                        .toResult("Destination account not found")
+                        .bind(toAccount -> 
+                            Result.<Unit, String>success(Unit.VALUE)
+                                .tap(() -> fromAccount.debit(amount))
+                                .tap(() -> toAccount.credit(amount))
+                                .tap(() -> auditLog.logTransfer(fromAccountId, toAccountId, amount))
+                        )
+                )
+        );
+}
+```
+
 ## Key Features
 
 - ✅ **100% API compatible** with typescript-functional-extensions
@@ -415,11 +515,12 @@ java-functional-extensions/
 - ✅ **Coroutines support** with suspend functions
 - ✅ **Immutable and thread-safe**
 - ✅ **Complete JavaDoc and KDoc**
-- ✅ **551 passing tests** (380 Java + 171 Kotlin)
+- ✅ **577 passing tests** (551 original + 26 transaction tests)
 - ✅ **Railway Oriented Programming** support
 - ✅ **Arrow Raise-style syntax** with resultScope
 - ✅ **Pattern matching** with sealed classes
 - ✅ **Async/await pattern** with CompletableFuture
+- ✅ **Transaction Scope** with automatic rollback
 
 ## License
 

@@ -1379,6 +1379,56 @@ public final class Result<T, E> {
     }
 
     // ========================================================================
+    // TRANSACTION SCOPE METHODS
+    // ========================================================================
+
+    /**
+     * Executes an operation within a transaction scope.
+     *
+     * <p>If this Result is a failure, the operation is not executed and
+     * no transaction is started. If this Result is successful, a new
+     * transaction is begun and the operation is executed.</p>
+     *
+     * <p>The transaction is committed if the operation succeeds, or rolled back
+     * if the operation fails or throws an exception.</p>
+     *
+     * <p>This overload allows the operation to return a Result with a different
+     * value type while maintaining the same error type.</p>
+     *
+     * @param <U> the type of the output value
+     * @param transactionManager the transaction manager to use
+     * @param operation the operation to execute within the transaction
+     * @return the result of the operation, or this failure if this Result failed
+     *
+     * @example
+     * <pre>{@code
+     * // Same type transformation
+     * Result<Customer, String> result = Result.from(getCustomer(id))
+     *     .toResult("Customer not found")
+     *     .withTransaction(transactionManager, customer ->
+     *         Result.success(customer)
+     *             .tap(Customer::promote)
+     *             .tap(Customer::clearAppointments)
+     *     );
+     * 
+     * // Different type transformation
+     * Result<String, String> result = Result.success(customerId)
+     *     .withTransaction(transactionManager, id ->
+     *         getCustomer(id).toResult("Not found")
+     *     );
+     * }</pre>
+     *
+     * @see ResultTransaction#withTransaction(Result, TransactionManager, Function)
+     * @since 1.2.0
+     */
+    public <U> Result<U, E> withTransaction(
+        com.adrewdev.functional.transaction.TransactionManager transactionManager,
+        Function<T, Result<U, E>> operation
+    ) {
+        return ResultTransaction.withTransaction(this, transactionManager, operation);
+    }
+
+    // ========================================================================
     // HELPER CLASSES
     // ========================================================================
 

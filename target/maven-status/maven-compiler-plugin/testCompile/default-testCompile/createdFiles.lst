@@ -1,5 +1,6 @@
 com/adrewdev/functional/ResultTest$IsSuccessFailure.class
 com/adrewdev/functional/ResultTest$EnsureMethod.class
+com/adrewdev/functional/transaction/ResultTransactionTest$WithTransactionTypeTransformation.class
 com/adrewdev/functional/MaybeTest$OrWithSupplierMethod.class
 com/adrewdev/functional/MaybeTest$MapMethod.class
 com/adrewdev/functional/UtilitiesTest$IsDefinedMethod.class
@@ -8,6 +9,7 @@ com/adrewdev/functional/MaybeTest$ToResultWithErrorMethod.class
 com/adrewdev/functional/ResultTest$FirstMethod.class
 com/adrewdev/functional/ResultTest$ToStringMethod.class
 com/adrewdev/functional/ResultAsyncTest$TapMethod.class
+com/adrewdev/functional/transaction/ResultTransactionTest$TransactionAutoCloseable.class
 com/adrewdev/functional/MaybeAsyncTest$MatchWithCallbacksMethod.class
 com/adrewdev/functional/ResultAsyncTest$FromWithResultMethod.class
 com/adrewdev/functional/MaybeAsyncTest.class
@@ -28,6 +30,7 @@ com/adrewdev/functional/ResultAsyncTest$HashCodeMethod.class
 com/adrewdev/functional/MaybeTest$ToResultWithSupplierMethod.class
 com/adrewdev/functional/MaybeTest$IsDefinedMethod.class
 com/adrewdev/functional/UtilitiesTest$NoopConsumerMethod.class
+com/adrewdev/functional/transaction/ResultTransactionTest.class
 com/adrewdev/functional/ResultTest$MergeMethod.class
 com/adrewdev/functional/MaybeTest$IsSomeMethod.class
 com/adrewdev/functional/MaybeAsyncTest$NoneMethod.class
@@ -44,6 +47,7 @@ com/adrewdev/functional/ResultTest$FailureIfMethod.class
 com/adrewdev/functional/ResultAsyncTest$OrElseMethod.class
 com/adrewdev/functional/MaybeTest$TryLastMethod.class
 com/adrewdev/functional/MaybeAsyncTest$MatchWithMatcherMethod.class
+com/adrewdev/functional/transaction/ResultTransactionTest$WithTransactionSupplier.class
 com/adrewdev/functional/ResultTest$MapMethod.class
 com/adrewdev/functional/ResultTest$AllMethod.class
 com/adrewdev/functional/ResultTest$FailureMethod.class
@@ -71,13 +75,16 @@ com/adrewdev/functional/MaybeAsyncTest$MatchWithMatcherMethod$2.class
 com/adrewdev/functional/ResultAsyncTest$SuccessMethod.class
 com/adrewdev/functional/MaybeTest$FromMethod.class
 com/adrewdev/functional/ResultAsyncTest$TapErrorMethod.class
+com/adrewdev/functional/transaction/ResultTransactionTest$MockTransaction.class
 com/adrewdev/functional/UtilitiesTest.class
 com/adrewdev/functional/ResultTest$ToOptionalMethod.class
 com/adrewdev/functional/ResultTest$EqualsMethod.class
 com/adrewdev/functional/ResultTest$BindMethod.class
 com/adrewdev/functional/UtilitiesTest$EmptyOrWhiteSpaceStringAsNoneMethod.class
 com/adrewdev/functional/MaybeAsyncTest$OrWithValueMethod.class
+com/adrewdev/functional/transaction/ResultTransactionTest$RealWorldScenarios.class
 com/adrewdev/functional/ResultAsyncTest$MatchWithMatcherMethod$2.class
+com/adrewdev/functional/transaction/ResultTransactionTest$WithTransactionBasic.class
 com/adrewdev/functional/MaybeAsyncTest$ToCompletableFutureMethod.class
 com/adrewdev/functional/MaybeAsyncTest$GetValueOrThrowWithMessageMethod.class
 com/adrewdev/functional/ResultAsyncTest$MapErrorMethod.class
@@ -100,6 +107,7 @@ com/adrewdev/functional/ResultAsyncTest$GetValueOrDefaultMethod.class
 com/adrewdev/functional/UtilitiesTest$IdentityMethod.class
 com/adrewdev/functional/ResultTest$MapErrorMethod.class
 com/adrewdev/functional/ResultAsyncTest$FromWithFutureMethod.class
+com/adrewdev/functional/transaction/ResultTransactionTest$MockTransactionManager.class
 com/adrewdev/functional/ResultAsyncTest$MapMethod.class
 com/adrewdev/functional/UtilitiesTest$IsSomeMethod.class
 com/adrewdev/functional/MaybeTest$MatchWithCallbacksMethod.class
