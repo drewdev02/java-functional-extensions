@@ -1,1 +1,0 @@
-/Users/Andrew/.sdkman/candidates/java/17.0.15-amzn/bin/javadoc -J-Duser.language= -J-Duser.country= @options @packages
