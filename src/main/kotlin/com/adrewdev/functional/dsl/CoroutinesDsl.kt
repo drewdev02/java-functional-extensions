@@ -23,9 +23,34 @@ object CoroutinesDsl
 
 /**
  * Creates a [MaybeAsync] from a suspending operation.
- * 
+ *
+ * This builder function wraps a suspending operation in a MaybeAsync,
+ * automatically handling nullable return values.
+ *
  * @param block the suspending operation to execute
  * @return [MaybeAsync] containing the result
+ *
+ * @example
+ * ```kotlin
+ * // Basic usage
+ * val maybe = maybeAsync { fetchUser(id) }
+ *
+ * // With pattern matching
+ * runBlocking {
+ *     when (maybe.await().toMaybeK()) {
+ *         is MaybeK.Some -> println(maybe.value)
+ *         MaybeK.None -> println("No user")
+ *     }
+ * }
+ *
+ * // Chaining operations
+ * val email = maybeAsync { fetchUser(id) }
+ *     .map { it.email }
+ *     .toCompletableFuture()
+ *     .join()
+ * ```
+ *
+ * @see maybeAsync the CompletableFuture overload
  */
 fun <T> maybeAsync(block: suspend () -> T?): MaybeAsync<T> {
     val future: CompletableFuture<T> = CompletableFuture.supplyAsync {
@@ -50,9 +75,34 @@ fun <T> maybeAsync(future: CompletableFuture<T>): MaybeAsync<T> {
 
 /**
  * Awaits the completion of [MaybeAsync] and returns [Maybe].
- * 
+ *
+ * This suspending function waits for the async operation to complete
+ * and returns the result as a Maybe.
+ *
  * @receiver the async Maybe to await
  * @return [Maybe] with the result
+ *
+ * @example
+ * ```kotlin
+ * // Basic await
+ * runBlocking {
+ *     val maybe = maybeAsync { fetchUser(id) }.await()
+ *     maybe.match(
+ *         some = { println("User: $it") },
+ *         none = { println("No user") }
+ *     )
+ * }
+ *
+ * // With pattern matching
+ * runBlocking {
+ *     when (maybeAsync { fetchUser(id) }.await().toMaybeK()) {
+ *         is MaybeK.Some -> println(maybe.value)
+ *         MaybeK.None -> println("Not found")
+ *     }
+ * }
+ * ```
+ *
+ * @see awaitGetValue for direct value extraction
  */
 suspend fun <T> MaybeAsync<T>.await(): Maybe<T> {
     return toCompletableFuture().await()
@@ -75,10 +125,41 @@ suspend fun <T> MaybeAsync<T>.awaitGetValue(): T {
 
 /**
  * Creates a [ResultAsync] from a suspending operation that may throw.
- * 
+ *
+ * This builder function wraps a suspending operation in a ResultAsync,
+ * automatically catching exceptions and converting them to failures.
+ *
  * @param errorHandler function to convert Throwable to error type E
  * @param block the suspending operation to execute
  * @return [ResultAsync] containing the result
+ *
+ * @example
+ * ```kotlin
+ * // With custom error handler
+ * val result = resultAsync<String, Error>({ e ->
+ *     when (e) {
+ *         is IOException -> Error.NetworkError(e.message ?: "")
+ *         else -> Error.Unknown(e.message ?: "")
+ *     }
+ * }) {
+ *     fetchEmail(id)  // Suspending network call
+ * }
+ *
+ * // Railway pattern with async
+ * suspend fun getUserEmail(id: Int): Result<String, Error> = resultAsync {
+ *     val user = fetchUser(id).bind()
+ *     ensure(user.active) { Error.Inactive(user.id) }
+ *     user.email
+ * }.await()
+ *
+ * // Awaiting result
+ * runBlocking {
+ *     val email = resultAsync { fetchEmail(id) }.awaitGetValue()
+ *     println(email)
+ * }
+ * ```
+ *
+ * @see resultAsync the overload with default String error handler
  */
 fun <T, E> resultAsync(
     errorHandler: (Throwable) -> E,

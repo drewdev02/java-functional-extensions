@@ -185,6 +185,182 @@ String email = MaybeAsync.from(fetchUser(id))
   .join();
 ```
 
+## Kotlin DSL
+
+java-functional-extensions includes a complete Kotlin DSL for idiomatic usage with coroutines support.
+
+### Setup
+
+Add the dependency to your `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("com.adrewdev:java-functional-extensions:1.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+}
+```
+
+### Maybe DSL
+
+```kotlin
+import com.adrewdev.functional.dsl.*
+
+// Builder function
+val maybe = maybe { getUser(id) }
+
+// Extension functions
+val email = maybe { getUser(id) }
+    .map { it.email }
+    .or { "default@email.com" }
+    .getValueOrThrow()
+
+// Pattern matching
+when (maybe.toMaybeK()) {
+    is MaybeK.Some -> println(maybe.value)
+    MaybeK.None -> println("No user")
+}
+```
+
+### Result DSL
+
+```kotlin
+import com.adrewdev.functional.dsl.*
+
+// Builder with exception handling
+val result = result {
+    readFile(path)  // Exceptions automatically caught
+}
+
+// Railway pattern
+val email = result {
+    val user = getUser(id).bind()
+    ensure(user.active) { Error.UserInactive(user.id) }
+    ensure(user.email.endsWith("@company.com")) { 
+        Error.InvalidEmail(user.email) 
+    }
+    user.email
+}
+
+// Pattern matching
+when (result.toResultK()) {
+    is ResultK.Success -> println(result.value)
+    is ResultK.Failure -> println(result.error)
+}
+```
+
+### Coroutines Support
+
+```kotlin
+import com.adrewdev.functional.dsl.*
+import kotlinx.coroutines.*
+
+// Async builders
+val maybe = maybeAsync { fetchUser(id) }
+val result = resultAsync { fetchEmail(id) }
+
+// Await results
+runBlocking {
+    val email = resultAsync { fetchEmail(id) }.awaitGetValue()
+    println(email)
+}
+
+// Async railway pattern
+suspend fun getUserEmail(id: Int): Result<String, Error> = resultAsync {
+    val user = fetchUser(id).bindAsync()
+    ensure(user.active) { Error.Inactive(user.id) }
+    user.email
+}.await()
+```
+
+### Railway DSL (Arrow Raise Style)
+
+```kotlin
+import com.adrewdev.functional.dsl.*
+
+// Arrow Raise-style syntax
+val email: Result<String, Error> = resultScope {
+    val user = getUser(id).bind()
+    ensure(user.active) { Error.Inactive(user.id) }
+    ensure(user.email.endsWith("@test.com")) { 
+        Error.InvalidEmail(user.email) 
+    }
+    user.email
+}
+
+// Combinators
+val allEmails = all(listOf(result1, result2, result3))
+val firstSuccess = any(listOf(result1, result2, result3))
+val combined = result1.zip(result2) { a, b -> "$a, $b" }
+```
+
+### Complete Example
+
+```kotlin
+import com.adrewdev.functional.dsl.*
+import kotlinx.coroutines.*
+
+data class User(val id: Int, val email: String, val active: Boolean)
+sealed class Error {
+    data class NotFound(val id: Int) : Error()
+    data class Inactive(val id: Int) : Error()
+    data class InvalidEmail(val email: String) : Error()
+}
+
+suspend fun fetchUser(id: Int): User = withContext(Dispatchers.IO) {
+    delay(100)
+    User(id, "user@test.com", true)
+}
+
+suspend fun validateEmail(email: String): String = withContext(Dispatchers.IO) {
+    delay(50)
+    ensure(email.endsWith("@test.com")) { 
+        throw IllegalArgumentException("Invalid domain") 
+    }
+    email
+}
+
+fun main() = runBlocking {
+    val emailResult = resultAsync<String, Error>({ e ->
+        when (e) {
+            is IllegalArgumentException -> Error.InvalidEmail(e.message ?: "")
+            else -> Error.NotFound(1)
+        }
+    }) {
+        val user = fetchUser(1)
+        ensure(user.active) { Error.Inactive(user.id) }
+        validateEmail(user.email)
+    }
+    
+    when (val result = emailResult.await().toResultK()) {
+        is ResultK.Success -> println("Email: ${result.value}")
+        is ResultK.Failure -> when (val error = result.error) {
+            is Error.NotFound -> println("Not found: ${error.id}")
+            is Error.Inactive -> println("Inactive: ${error.id}")
+            is Error.InvalidEmail -> println("Invalid: ${error.email}")
+        }
+    }
+}
+```
+
+### API Reference
+
+| Function | Description |
+|----------|-------------|
+| `maybe { }` | Creates Maybe from nullable value |
+| `maybe(value)` | Creates Maybe from non-null value |
+| `result { }` | Creates Result with exception handling |
+| `resultScope { }` | Railway pattern DSL scope |
+| `maybeAsync { }` | Creates MaybeAsync with coroutines |
+| `resultAsync { }` | Creates ResultAsync with coroutines |
+| `.bind()` | Extracts value or short-circuits |
+| `.ensure(condition)` | Validates condition |
+| `.await()` | Awaits async result |
+| `.toMaybeK()` | Converts to sealed class for pattern matching |
+| `.toResultK()` | Converts to sealed class for pattern matching |
+| `zip()` | Combines two results |
+| `all()` | Combines list of results |
+| `any()` | Returns first success |
+
 ## Testing
 
 Run all tests:
@@ -194,7 +370,7 @@ mvn test
 
 Expected output:
 ```
-Tests run: 380, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 551, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
@@ -209,12 +385,24 @@ java-functional-extensions/
 │   ├── ResultAsync.java        (24 methods)
 │   ├── Utilities.java          (13 methods)
 │   └── matchers/               (4 interfaces)
+├── src/main/kotlin/com/adrewdev/functional/dsl/
+│   ├── MaybeDsl.kt             (Maybe extensions)
+│   ├── ResultDsl.kt            (Result extensions)
+│   ├── CoroutinesDsl.kt        (Coroutines support)
+│   ├── RailwayDsl.kt           (Railway pattern DSL)
+│   └── examples/
+│       └── KotlinExamples.kt   (Complete examples)
 ├── src/test/java/
 │   ├── MaybeTest.java          (86 tests)
 │   ├── MaybeAsyncTest.java     (58 tests)
 │   ├── ResultTest.java         (125 tests)
 │   ├── ResultAsyncTest.java    (70 tests)
 │   └── UtilitiesTest.java      (39 tests)
+├── src/test/kotlin/
+│   ├── MaybeDslTest.kt         (42 tests)
+│   ├── ResultDslTest.kt        (67 tests)
+│   ├── CoroutinesDslTest.kt    (32 tests)
+│   └── RailwayDslTest.kt       (30 tests)
 └── pom.xml
 ```
 
@@ -223,10 +411,14 @@ java-functional-extensions/
 - ✅ **100% API compatible** with typescript-functional-extensions
 - ✅ **Zero external dependencies** (only Java stdlib)
 - ✅ **Java 8+ compatible**
+- ✅ **Kotlin DSL** with idiomatic extensions
+- ✅ **Coroutines support** with suspend functions
 - ✅ **Immutable and thread-safe**
-- ✅ **Complete JavaDoc**
-- ✅ **380 passing tests**
+- ✅ **Complete JavaDoc and KDoc**
+- ✅ **551 passing tests** (380 Java + 171 Kotlin)
 - ✅ **Railway Oriented Programming** support
+- ✅ **Arrow Raise-style syntax** with resultScope
+- ✅ **Pattern matching** with sealed classes
 - ✅ **Async/await pattern** with CompletableFuture
 
 ## License

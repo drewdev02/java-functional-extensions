@@ -20,17 +20,46 @@ object ResultDsl {
 
 /**
  * Creates a [Result] by executing a block that may throw exceptions.
- * 
+ *
+ * This is the primary builder function for creating Result instances.
+ * It automatically catches any exceptions thrown by the block and converts
+ * them to failure values using the provided error handler.
+ *
  * @param errorHandler function to convert Throwable to error type E
  * @param block the code to execute
  * @return [Result.Success] if block succeeds, [Result.Failure] if it throws
- * 
+ *
  * @example
  * ```kotlin
+ * // With custom error handler
  * val result = result<String, String>({ e -> "Error: ${e.message}" }) {
  *     readFile(path)  // May throw IOException
  * }
+ *
+ * // With sealed error types
+ * sealed class Error {
+ *     data class IoError(val message: String) : Error()
+ *     data class ParseError(val message: String) : Error()
+ * }
+ *
+ * val result = result<String, Error>({ e ->
+ *     when (e) {
+ *         is IOException -> Error.IoError(e.message ?: "")
+ *         else -> Error.ParseError(e.message ?: "")
+ *     }
+ * }) {
+ *     parseFile(path)
+ * }
+ *
+ * // Railway pattern
+ * val email = result {
+ *     val user = getUser(id).bind()
+ *     ensure(user.active) { Error.UserInactive(user.id) }
+ *     user.email
+ * }
  * ```
+ *
+ * @see result the overload with default String error handler
  */
 inline fun <T, E> result(
     crossinline errorHandler: (Throwable) -> E,
@@ -41,17 +70,37 @@ inline fun <T, E> result(
 
 /**
  * Creates a [Result] by executing a block that may throw exceptions.
- * Uses default error handler that converts Throwable to String.
- * 
+ *
+ * This overload uses a default error handler that converts any Throwable
+ * to a String error message. Use this for simple cases where you don't
+ * need custom error types.
+ *
  * @param block the code to execute
  * @return [Result.Success] with value, or [Result.Failure] with error message
- * 
+ *
  * @example
  * ```kotlin
+ * // Simple case with String errors
  * val result = result {
  *     readFile(path)  // Returns Result<T, String>
  * }
+ *
+ * // Railway pattern with String errors
+ * val email = result {
+ *     val user = getUser(id).bind()
+ *     ensure(user.active) { "User ${user.id} is inactive" }
+ *     user.email
+ * }
+ *
+ * // Chaining operations
+ * val output = result {
+ *     val data = readData().bind()
+ *     val processed = processData(data).bind()
+ *     writeOutput(processed).bind()
+ * }
  * ```
+ *
+ * @see result the overload with custom error handler
  */
 inline fun <T> result(crossinline block: () -> T): Result<T, String> {
     return result(
@@ -79,19 +128,39 @@ inline fun <T, E> (() -> T).toResult(
 
 /**
  * Extracts the value from [Result] or short-circuits with failure.
- * This is the key function for railway pattern.
- * 
+ *
+ * This is the key function for railway pattern programming. Inside a
+ * [result] builder block, calling bind() on a failed Result will cause
+ * the entire block to short-circuit and return that failure.
+ *
  * @receiver the Result to extract from
  * @return the success value
  * @throws NoSuchElementException if this Result is failure
- * 
+ *
  * @example
  * ```kotlin
+ * // Basic railway pattern
  * val email = result {
  *     val user = getUser(id).bind()  // Extracts or returns failure
  *     user.email
  * }
+ *
+ * // Chaining multiple operations
+ * val output = result {
+ *     val data = readData().bind()      // Short-circuits on failure
+ *     val processed = process(data).bind()  // Short-circuits on failure
+ *     save(processed).bind()            // Short-circuits on failure
+ * }
+ *
+ * // With Maybe
+ * val email = result {
+ *     val user = getUserMaybe(id).bind()  // Converts None to failure
+ *     user.email
+ * }
  * ```
+ *
+ * @see ResultDslScope.bind the scope version for resultScope
+ * @see ensure for validation with short-circuit
  */
 @JvmName("bindResult")
 inline fun <T, E> Result<T, E>.bind(): T {
@@ -121,10 +190,43 @@ inline fun <T> com.adrewdev.functional.Maybe<T>.bind(): T {
 
 /**
  * Validates a condition and returns failure if false.
- * 
+ *
+ * This function is essential for railway pattern validation. It checks
+ * a boolean condition and, if false, converts the Result to a failure
+ * with the provided error value.
+ *
  * @param condition the condition to validate
  * @param error the error to return if condition is false
  * @return this Result if condition is true, or failure with error
+ *
+ * @example
+ * ```kotlin
+ * // Basic validation
+ * val result = result {
+ *     val user = getUser(id).bind()
+ *     ensure(user.active) { Error.Inactive(user.id) }
+ *     user.email
+ * }
+ *
+ * // Multiple validations
+ * val email = result {
+ *     val user = getUser(id).bind()
+ *     ensure(user.active) { Error.Inactive(user.id) }
+ *     ensure(user.email.isNotEmpty()) { Error.EmptyEmail }
+ *     ensure(user.email.contains("@")) { Error.InvalidEmail(user.email) }
+ *     user.email
+ * }
+ *
+ * // With String errors
+ * val validated = result {
+ *     val value = getValue().bind()
+ *     ensure(value > 0) { "Value must be positive" }
+ *     ensure(value < 100) { "Value must be less than 100" }
+ *     value
+ * }
+ * ```
+ *
+ * @see ensure the predicate overload for value-based validation
  */
 fun <T, E> Result<T, E>.ensure(condition: Boolean, error: E): Result<T, E> {
     return if (condition) this else Result.failure(error)
@@ -280,19 +382,39 @@ sealed class ResultK<out T, out E> {
 
 /**
  * Converts [Result] to [ResultK] for pattern matching.
- * 
- * This extension function enables exhaustive when expressions on Result values.
- * 
+ *
+ * This extension function wraps a Java [Result] in a Kotlin sealed class,
+ * enabling exhaustive pattern matching with when expressions.
+ *
  * @receiver the Result to convert
  * @return [ResultK.Success] if the Result is successful, [ResultK.Failure] otherwise
- * 
+ *
  * @example
  * ```kotlin
- * val output = when (result.toResultK()) {
- *     is ResultK.Success -> "Got: ${result.value}"
- *     is ResultK.Failure -> "Error: ${result.error}"
+ * // Basic pattern matching
+ * when (result.toResultK()) {
+ *     is ResultK.Success -> println("Value: ${result.value}")
+ *     is ResultK.Failure -> println("Error: ${result.error}")
  * }
+ *
+ * // With sealed error types
+ * when (val r = getUser(id).toResultK()) {
+ *     is ResultK.Success -> processUser(r.value)
+ *     is ResultK.Failure -> when (r.error) {
+ *         is Error.NotFound -> logNotFound(r.error.id)
+ *         is Error.Inactive -> logInactive(r.error.id)
+ *     }
+ * }
+ *
+ * // In expression position
+ * fun getMessage(result: Result<String, Error>): String =
+ *     when (result.toResultK()) {
+ *         is ResultK.Success -> "Success: ${result.value}"
+ *         is ResultK.Failure -> "Error: ${result.error}"
+ *     }
  * ```
+ *
+ * @see ResultK the sealed class for pattern matching
  */
 fun <T, E> Result<T, E>.toResultK(): ResultK<T, E> {
     return ResultK.from(this)

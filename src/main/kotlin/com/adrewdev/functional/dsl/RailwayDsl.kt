@@ -158,39 +158,64 @@ class ResultDslScope<T, E> {
 
 /**
  * Creates a [Result] with a DSL scope for railway pattern.
- * 
- * Within this scope, you can use:
+ *
+ * This function provides Arrow Raise-style syntax for railway pattern
+ * programming. Within the scope, you can use:
  * - [ResultDslScope.bind()] to extract values or short-circuit
  * - [ResultDslScope.ensure()] to validate conditions
- * 
+ *
  * The block executes in a [ResultDslScope] context. If any operation
  * short-circuits (via [bind()] on failure or [ensure()] on false),
  * the block exits early and returns a [Result.Failure] with the error.
- * 
+ *
  * @param block the railway DSL scope
  * @return [Result.Success] if all operations succeed, [Result.Failure] otherwise
- * 
+ *
  * @example
  * ```kotlin
+ * // Basic railway pattern
  * sealed class Error {
- *     object UserNotFound : Error()
- *     object Inactive : Error()
+ *     data class NotFound(val id: Int) : Error()
+ *     data class Inactive(val id: Int) : Error()
+ *     data class InvalidEmail(val email: String) : Error()
  * }
- * 
+ *
  * data class User(val id: Int, val email: String, val active: Boolean)
- * 
+ *
  * fun getUser(id: Int): Result<User, Error> = ...
- * 
+ *
  * val email: Result<String, Error> = resultScope {
  *     val user = getUser(1).bind()
- *     ensure(user.active) { Error.Inactive }
+ *     ensure(user.active) { Error.Inactive(user.id) }
+ *     ensure(user.email.endsWith("@test.com")) {
+ *         Error.InvalidEmail(user.email)
+ *     }
  *     user.email
  * }
+ *
+ * // Multiple operations
+ * val output: Result<String, Error> = resultScope {
+ *     val user = getUser(id).bind()
+ *     val email = validateEmail(user.email).bind()
+ *     val template = getEmailTemplate().bind()
+ *     formatEmail(email, template)
+ * }
+ *
+ * // Pattern matching on result
+ * when (email.toResultK()) {
+ *     is ResultK.Success -> println(email.value)
+ *     is ResultK.Failure -> when (email.error) {
+ *         is Error.NotFound -> println("Not found")
+ *         is Error.Inactive -> println("Inactive")
+ *         is Error.InvalidEmail -> println("Invalid email")
+ *     }
+ * }
  * ```
- * 
+ *
  * @see ResultDslScope
  * @see ResultDslScope.bind
  * @see ResultDslScope.ensure
+ * @see result the exception-handling builder
  */
 inline fun <T, E> resultScope(
     crossinline block: ResultDslScope<T, E>.() -> T
@@ -214,26 +239,38 @@ inline fun <T, E> resultScope(
 
 /**
  * Combines two Results into a pair.
- * 
+ *
  * If both Results are successful, returns a [Result.Success] containing
  * a [Pair] of both values. If either is a failure, returns the first
  * failure encountered.
- * 
+ *
  * @param T1 the type of the first success value
  * @param T2 the type of the second success value
  * @param E the type of the error
  * @param receiver the first Result
  * @param other the second Result to combine with
  * @return [Result.Success] with Pair, or [Result.Failure]
- * 
+ *
  * @example
  * ```kotlin
+ * // Basic zip
  * val r1: Result<String, String> = Result.success("hello")
  * val r2: Result<Int, String> = Result.success(42)
- * 
+ *
  * val zipped: Result<Pair<String, Int>, String> = r1.zip(r2)
  * // Result.Success("hello" to 42)
+ *
+ * // With transformation
+ * val combined = r1.zip(r2) { str, num -> "$str has $num letters" }
+ * // Result.Success("hello has 42 letters")
+ *
+ * // Failure propagation
+ * val failure = Result.failure<String, String>("error")
+ * val zippedWithFailure = r1.zip(failure)
+ * // Result.Failure("error")
  * ```
+ *
+ * @see zip the transform overload
  */
 fun <T1, T2, E> Result<T1, E>.zip(
     other: Result<T2, E>
@@ -279,28 +316,50 @@ inline fun <T1, T2, R, E> Result<T1, E>.zip(
 
 /**
  * Combines a list of Results, returning all values or first error.
- * 
+ *
  * Iterates through the list and collects all success values.
  * If any Result is a failure, immediately returns that failure.
  * If all are successful, returns a [Result.Success] with the list
  * of all values.
- * 
+ *
  * @param T the type of the success values
  * @param E the type of the error
  * @param results the list of Results to combine
  * @return [Result.Success] with list of values, or [Result.Failure]
- * 
+ *
  * @example
  * ```kotlin
+ * // All succeed
  * val results = listOf(
  *     Result.success(1),
  *     Result.success(2),
  *     Result.success(3)
  * )
- * 
+ *
  * val all: Result<List<Int>, String> = all(results)
  * // Result.Success(listOf(1, 2, 3))
+ *
+ * // First failure stops processing
+ * val withFailure = listOf(
+ *     Result.success(1),
+ *     Result.failure<Int, String>("error"),
+ *     Result.success(3)
+ * )
+ *
+ * val allWithFailure = all(withFailure)
+ * // Result.Failure("error")
+ *
+ * // Real-world: batch validation
+ * val emails = listOf("a@test.com", "b@test.com", "c@test.com")
+ * val validated = all(emails.map { email ->
+ *     result {
+ *         ensure(email.endsWith("@test.com")) { "Invalid: $email" }
+ *         email
+ *     }
+ * })
  * ```
+ *
+ * @see any for first success
  */
 fun <T, E> all(results: List<Result<T, E>>): Result<List<T>, E> {
     val values = mutableListOf<T>()
@@ -317,27 +376,47 @@ fun <T, E> all(results: List<Result<T, E>>): Result<List<T>, E> {
 
 /**
  * Returns first successful Result or last failure.
- * 
+ *
  * Iterates through the list and returns the first successful Result.
  * If all are failures, returns the last failure.
  * If the list is empty, returns a failure with "Empty list" error.
- * 
+ *
  * @param T the type of the success value
  * @param E the type of the error
  * @param results the list of Results to check
  * @return first [Result.Success], or last [Result.Failure]
- * 
+ *
  * @example
  * ```kotlin
+ * // First success wins
  * val results = listOf(
  *     Result.failure<Int, String>("error1"),
  *     Result.success(42),
  *     Result.success(100)
  * )
- * 
+ *
  * val any: Result<Int, String> = any(results)
  * // Result.Success(42) - first success
+ *
+ * // All failures
+ * val allFailures = listOf(
+ *     Result.failure<Int, String>("error1"),
+ *     Result.failure<Int, String>("error2")
+ * )
+ *
+ * val anyFailure = any(allFailures)
+ * // Result.Failure("error2") - last failure
+ *
+ * // Real-world: fallback chain
+ * val email = any(listOf(
+ *     fetchPrimaryEmail(),
+ *     fetchSecondaryEmail(),
+ *     fetchBackupEmail(),
+ *     Result.failure("No email available")
+ * ))
  * ```
+ *
+ * @see all for all values
  */
 fun <T, E> any(results: List<Result<T, E>>): Result<T, E> {
     var lastFailure: Result<T, E>? = null
