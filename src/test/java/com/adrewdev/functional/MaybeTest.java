@@ -783,7 +783,6 @@ class MaybeTest {
 
     // ========================================================================
     // CONVERSION METHODS - FASE 6
-    // Tests are @Disabled because Result.java and MaybeAsync.java are not yet implemented
     // ========================================================================
 
     @Nested
@@ -792,26 +791,24 @@ class MaybeTest {
 
         @Test
         @DisplayName("with Some returns Success")
-        @Disabled("Requires Result.java implementation")
         void withSome_returnsSuccess() {
-            // TODO: Implement when Result.java is available
-            // Expected behavior:
-            // Maybe<String> maybe = Maybe.from("value");
-            // Result<String, String> result = maybe.toResult("No value");
-            // assertThat(result.isSuccess()).isTrue();
-            // assertThat(result.getValueOrThrow()).isEqualTo("value");
+            Maybe<String> maybe = Maybe.from("value");
+            Result<String, String> result = maybe.toResult("No value");
+
+            assertThat(result.isSuccessful()).isTrue();
+            assertThat(result.isFailure()).isFalse();
+            assertThat(result.getValueOrThrow()).isEqualTo("value");
         }
 
         @Test
         @DisplayName("with None returns Failure")
-        @Disabled("Requires Result.java implementation")
         void withNone_returnsFailure() {
-            // TODO: Implement when Result.java is available
-            // Expected behavior:
-            // Maybe<String> maybe = Maybe.none();
-            // Result<String, String> result = maybe.toResult("No value");
-            // assertThat(result.isFailure()).isTrue();
-            // assertThat(result.getErrorOrThrow()).isEqualTo("No value");
+            Maybe<String> maybe = Maybe.none();
+            Result<String, String> result = maybe.toResult("No value");
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(result.isSuccessful()).isFalse();
+            assertThat(result.getErrorOrThrow()).isEqualTo("No value");
         }
     }
 
@@ -821,39 +818,37 @@ class MaybeTest {
 
         @Test
         @DisplayName("with Some returns Success")
-        @Disabled("Requires Result.java implementation")
         void withSome_returnsSuccess() {
-            // TODO: Implement when Result.java is available
-            // Expected behavior:
-            // Maybe<String> maybe = Maybe.from("value");
-            // Result<String, String> result = maybe.toResult(() -> "Error");
-            // assertThat(result.isSuccess()).isTrue();
+            Maybe<String> maybe = Maybe.from("value");
+            Result<String, String> result = maybe.toResult(() -> "Error");
+
+            assertThat(result.isSuccessful()).isTrue();
+            assertThat(result.getValueOrThrow()).isEqualTo("value");
         }
 
         @Test
         @DisplayName("with None calls supplier and returns Failure")
-        @Disabled("Requires Result.java implementation")
         void withNone_callsSupplierAndReturnsFailure() {
-            // TODO: Implement when Result.java is available
-            // Expected behavior:
-            // Maybe<String> maybe = Maybe.none();
-            // AtomicBoolean called = new AtomicBoolean(false);
-            // Result<String, String> result = maybe.toResult(() -> {
-            //     called.set(true);
-            //     return "Error";
-            // });
-            // assertThat(called.get()).isTrue();
-            // assertThat(result.isFailure()).isTrue();
+            Maybe<String> maybe = Maybe.none();
+            AtomicBoolean called = new AtomicBoolean(false);
+            Result<String, String> result = maybe.toResult(() -> {
+                called.set(true);
+                return "Error";
+            });
+
+            assertThat(called.get()).isTrue();
+            assertThat(result.isFailure()).isTrue();
+            assertThat(result.getErrorOrThrow()).isEqualTo("Error");
         }
 
         @Test
         @DisplayName("with null supplier throws NPE")
-        @Disabled("Requires Result.java implementation")
         void withNullSupplier_throwsNPE() {
-            // TODO: Implement when Result.java is available
-            // Expected behavior:
-            // Maybe<String> maybe = Maybe.from("test");
-            // assertThrows(NullPointerException.class, () -> maybe.toResult((Supplier<String>) null));
+            Maybe<String> maybe = Maybe.from("test");
+
+            assertThatThrownBy(() -> maybe.toResult((Supplier<String>) null))
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessage("errorSupplier cannot be null");
         }
     }
 
@@ -866,8 +861,7 @@ class MaybeTest {
         @Disabled("Requires MaybeAsync.java implementation")
         void convertsMaybeToMaybeAsync() {
             // TODO: Implement when MaybeAsync.java is available
-            // Expected behavior:
-            // Maybe<String> maybe = Maybe.from("value");
+            Maybe<String> maybe = Maybe.from("value");
             // MaybeAsync<String> async = maybe.toMaybeAsync();
             // assertThat(async).isNotNull();
             // async.match(
@@ -881,8 +875,7 @@ class MaybeTest {
         @Disabled("Requires MaybeAsync.java implementation")
         void convertsNoneToMaybeAsync() {
             // TODO: Implement when MaybeAsync.java is available
-            // Expected behavior:
-            // Maybe<String> maybe = Maybe.none();
+            Maybe<String> maybe = Maybe.none();
             // MaybeAsync<String> async = maybe.toMaybeAsync();
             // assertThat(async).isNotNull();
             // async.match(

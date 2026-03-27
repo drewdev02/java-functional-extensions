@@ -2,6 +2,7 @@ package com.adrewdev.functional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -746,7 +747,6 @@ public final class Maybe<T> {
 
     // ========================================================================
     // CONVERSION METHODS - FASE 6
-    // TODO: These methods require Result.java and MaybeAsync.java implementations
     // ========================================================================
 
     /**
@@ -768,17 +768,11 @@ public final class Maybe<T> {
      * @param <E> the type of the error
      * @param error the error to use if this Maybe is empty
      * @return a Result containing Success with the value, or Failure with the error
-     * 
-     * @implNote Requires Result.java implementation
-     * @TODO Implement when Result.java is available
      */
     public <E> Result<T, E> toResult(E error) {
-        // TODO: Implement when Result.java is available
-        // Expected implementation:
-        // return value
-        //     .map(Result::success)
-        //     .orElse(Result.failure(error));
-        throw new UnsupportedOperationException("toResult() requires Result.java - not yet implemented");
+        return value
+            .<Result<T, E>>map(v -> Result.success(v))
+            .orElse(Result.failure(error));
     }
 
     /**
@@ -787,28 +781,16 @@ public final class Maybe<T> {
      * <p>Returns Success if this Maybe contains a value, or Failure with the
      * provided error from the supplier if it is empty.</p>
      *
-     * <p>Example:
-     * <pre>{@code
-     * Maybe<String> maybe = Maybe.from("value");
-     * Result<String, String> result = maybe.toResult(() -> "Error: " + System.currentTimeMillis());
-     * }</pre>
-     *
      * @param <E> the type of the error
      * @param errorSupplier the supplier that provides the error if this Maybe is empty
      * @return a Result containing Success with the value, or Failure with the error
      * @throws NullPointerException if errorSupplier is null
-     * 
-     * @implNote Requires Result.java implementation
-     * @TODO Implement when Result.java is available
      */
     public <E> Result<T, E> toResult(Supplier<E> errorSupplier) {
-        // TODO: Implement when Result.java is available
-        // Expected implementation:
-        // Objects.requireNonNull(errorSupplier, "errorSupplier cannot be null");
-        // return value
-        //     .map(Result::success)
-        //     .orElseGet(() -> Result.failure(errorSupplier.get()));
-        throw new UnsupportedOperationException("toResult(Supplier) requires Result.java - not yet implemented");
+        Objects.requireNonNull(errorSupplier, "errorSupplier cannot be null");
+        return value
+            .<Result<T, E>>map(v -> Result.success(v))
+            .orElseGet(() -> Result.failure(errorSupplier.get()));
     }
 
     /**
